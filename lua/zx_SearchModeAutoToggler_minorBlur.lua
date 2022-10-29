@@ -1,7 +1,8 @@
 require "Foraging/ISSearchManager"
 
-zx = zx or {}
-zx.search = {interval = 0, active = false}
+local active = false
+local interval = 0
+local wait = true
 
 function ISSearchManager:updateOverlay()
 	local darkness = 0
@@ -18,40 +19,31 @@ function ISSearchManager:updateOverlay()
 end
 
 local function SearchOnPlayerUpdate(player)
-	-- zx.search.interval = zx.search.interval + 1
-	-- print(zx.search.interval)
-	-- if zx.search.interval > 100 then
-		-- zx.search.interval = 0
+	interval = interval + 1
+	if interval >= 30 then
+		interval = 0
 		if player:getVehicle() or ISSearchManager.getManager(player):checkShouldDisable() then
 			return
 		else
-			zx.search.interval = zx.search.interval +1
-			if zx.search.interval > 20 then
-				zx.search.interval = 0
+			if wait then
+				wait = false
+			else
+				wait = true
 				ISSearchManager.getManager(player):toggleSearchMode(true)
 				Events.OnPlayerUpdate.Remove(SearchOnPlayerUpdate)
 			end
 		end
-	-- end
+	end
 end
 
--- local function SearchOnPlayerUpdate(player)
-    -- if player:getVehicle() or ISSearchManager.getManager(player):checkShouldDisable() then
-        -- return
-    -- else
-        -- ISSearchManager.getManager(player):toggleSearchMode(true)
-    -- end
--- end
-
-
 local function SearchToggle(player, smode)
-    if zx.search.active and not smode then Events.OnPlayerUpdate.Add(SearchOnPlayerUpdate); return end
-    if not zx.search.active and smode then ISSearchManager.getManager(player):toggleSearchMode(false); print("zx: sync search keys"); end
+    if active and not smode then return Events.OnPlayerUpdate.Add(SearchOnPlayerUpdate) end
+    if not active and smode then ISSearchManager.getManager(player):toggleSearchMode(false) end
 end
 
 local function SearchKey(_keyPressed)
     if _keyPressed == getCore():getKey("Toggle Search Mode") then
-        zx.search.active = not zx.search.active
+        active = not active
     end
 end
 
