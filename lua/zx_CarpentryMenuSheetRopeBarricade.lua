@@ -1,159 +1,306 @@
 require "BuildingObjects/ISUI/ISBuildMenu"
+require "BuildingObjects/ISBuildCursorMouse"
+
+local richGood, richBad = " <RGB:0,1,0> ", " <RGB:1,0,0> "
+local function wrapFn(class,method,patch)
+    local original = class[method]
+    class[method] = patch(original)
+end
 
 local function predicateNotBroken(item)
     return not item:isBroken()
 end
 
--- oISBuildMenubuildMiscMenu = oISBuildMenubuildMiscMenu or ISBuildMenu.buildMiscMenu
-local oISBuildMenubuildMiscMenu = ISBuildMenu.buildMiscMenu
-ISBuildMenu.buildMiscMenu = function(subMenu, option, player,...)
-    local o = oISBuildMenubuildMiscMenu(subMenu, option, player,...)
+local onSheetRope = function(worldobjects, player)
+    ISBuildMenu.cursor = zxSheetRopeCursor:new(player)
+    getCell():setDrag(ISBuildMenu.cursor, player)
+end
 
-    local playerObj = getSpecificPlayer(player)
+local function onBarricade(worldobjects, player)
+    ISBuildMenu.cursor = zxBarricadeCursor:new(player)
+    getCell():setDrag(ISBuildMenu.cursor, player)
+end
 
-    local sheetrope = subMenu:addOption(getText("ContextMenu_Add_escape_rope_sheet"), {}, ISBuildMenu.onSheetRope, playerObj)
-    --local toolTip = ISWorldObjectContextMenu.addToolTip()
-    --sheetrope.toolTip = toolTip
-    --toolTip.description = "Sheet Rope: " .. tostring(playerObj:getInventory():getItemCountRecurse("SheetRope"))
-    --toolTip.description = toolTip.description .. "\nFloor: " .. playerObj:getZ()
-    --toolTip:setName(getText("ContextMenu_Add_escape_rope_sheet"))
-    --ISBuildMenu.requireHammer(crossOption);
+wrapFn(ISBuildMenu,"buildMiscMenu", function(originalFn) return function(subMenu, option, player, ...)
+    local result = originalFn(subMenu, option, player, ...)
 
-     local barricade = subMenu:addOption(getText("ContextMenu_Barricade"), {}, ISBuildMenu.onBarricade, playerObj)
-    -- local toolTip = ISBuildMenu.addToolTip()
-    -- sheetrope.tooltip = toolTip
-    -- toolTip.description = "Sheet Rope: " .. tostring(playerInv:getItemCountRecurse("SheetRope"))
-    -- toolTip.description = toolTip.description .. "\nFloor: " .. player:getZ()
-    -- toolTip:setName(getText("ContextMenu_Add_escape_rope_sheet"))
+    local sheetrope = subMenu:addOption(getText("ContextMenu_Add_escape_rope_sheet"), {}, onSheetRope, player)
+    local barricade = subMenu:addOption(getText("ContextMenu_Barricade"), {}, onBarricade, player)
 
     option.notAvailable = false;
+    return result
+ end end)
+
+zxCommonCursor = ISBuildingObject:derive("zxCommonCursor")
+
+function zxCommonCursor:new(player)
+    local o = {};
+    setmetatable(o, self);
+    self.__index = self;
+    o:init()
+    o.player = player
+    o.playerObj = getSpecificPlayer(player)
+    --o.skipBuildAction = true
+    --o.required = {}
+    o.nFrame = 0
+    o.refresh = getPerformance():getUIRenderFPS()
     return o
 end
 
-ISBuildMenu.onSheetRope = function(worldobjects, player)
-    ISBuildMenu.cursor = ISBuildCursorMouse:new(player, ISBuildMenu.onSheetRopeBuild, ISBuildMenu.isSheetRopeValid)
-    getCell():setDrag(ISBuildMenu.cursor, player:getPlayerNum())
-
-    ISBuildMenu.cursor.sprite = "crafted_01_3"
-    ISBuildMenu.cursor.westSprite = "crafted_01_3"
-    ISBuildMenu.cursor.northSprite = "crafted_01_4"
-    --ISBuildMenu.cursor.eastSprite = "crafted_01_0"
-    --ISBuildMenu.cursor.southSprite = "crafted_01_1"
+function zxCommonCursor:initialise()
+    for key,req in pairs(self.required) do
+        local text
+        if req.isTag then
+            text = key
+        else
+            text = getItemNameFromFullType(key)
+        end
+        if req.num then text = text .. ": %d/%d" end
+        req.text = "\n%s" .. text
+    end
 end
 
-ISBuildMenu.onSheetRopeBuild = function(cursor)
-    if ISBuildMenu.cheat then
-        local inv = ISBuildMenu.cursor.character:getInventory()
-        inv:AddItems("SheetRope",ISBuildMenu.cursor.item:countAddSheetRope())
-        inv:AddItem(InventoryItemFactory.CreateItem("Nails"))
-    end
-    return ISWorldObjectContextMenu.onAddSheetRope({}, ISBuildMenu.cursor.item, ISBuildMenu.cursor.character:getPlayerNum())
+function zxCommonCursor:render(x, y, z, square)
+    local r,g,b,a = 0.0,1.0,0.0,0.8
+    if not self.valid then r,g = 1,0 end
+    local isoSprite = self.isoSprite or IsoSprite.new()
+    isoSprite:LoadFramesNoDirPageSimple(self.choosenSprite)
+    isoSprite:RenderGhostTileColor(x, y, z, r, g, b, a)
+
+    self:renderTooltip()
 end
 
-
-ISBuildMenu.isSheetRopeValid = function()
-    if not ISBuildMenu.cursor or not ISBuildMenu.cursor.sq then
-        return false;
+function zxCommonCursor:renderTooltip()
+    local tooltip = self.tooltip
+    if not tooltip then
+        tooltip = ISWorldObjectContextMenu.addToolTip()
+        tooltip:setVisible(true)
+        tooltip:addToUIManager()
+        tooltip.maxLineWidth = 1000
+        tooltip:setName(self.tooltipName)
+        self.tooltip = tooltip
     end
-    local cursor = ISBuildMenu.cursor
-    local player = cursor.character
-    local sq = cursor.sq
-    local validObject
-
-    if cursor.nSprite > 2 then cursor.nSprite = 1 end
-    if cursor.nSprite == 1 then
-        cursor.sprite = cursor.westSprite
-        cursor.west = true
-        cursor.north = false
+    if self.item then
+        tooltip:setTexture(self.item:getTextureName())
+        local description = "Required:"
+        for key,required in pairs(self.required) do
+            description = description .. string.format(required.text,required.valid and richGood or richBad,required.num,required.have)
+        end
+        tooltip.description = description
     else
-        cursor.sprite = cursor.northSprite
-        cursor.west = false
-        cursor.north = true
+        tooltip.texture = nil
+        tooltip.description = "No Valid Object"
     end
+end
 
-    for i = 0, sq:getObjects():size() - 1 do
-        local object = sq:getObjects():get(i);
-        if instanceof(object, "IsoThumpable") and not object:isDoor() and object:isWindow() or instanceof(object, "IsoWindow") then
-            if not object:isBarricaded() and cursor.north == object:getNorth() then
-                validObject = object
+function zxCommonCursor:checkRequired(square)
+    local groundItems = buildUtil.getMaterialOnGround(square);
+    local groundItemCounts = buildUtil.getMaterialOnGroundCounts(groundItems)
+    --local groundItemUses = buildUtil.getMaterialOnGroundUses(groundItems)
+    local playerInv = self.playerObj:getInventory()
+    local haveRequired = true
+    for key,required in pairs(self.required) do
+        if required.num then
+            local nbOfItem = playerInv:getCountTypeEvalRecurse(key, buildUtil.predicateMaterial)
+            if groundItemCounts[key] then
+                nbOfItem = nbOfItem + groundItemCounts[key]
             end
-        elseif object:getSprite() and object:getSprite():getProperties() and (object:getSprite():getProperties():Is(IsoFlagType.HoppableN) or object:getSprite():getProperties():Is(IsoFlagType.HoppableW)) then
-            if cursor.north and object:getSprite():getProperties():Is(IsoFlagType.HoppableN) or cursor.west and object:getSprite():getProperties():Is(IsoFlagType.HoppableW) then
-                validObject = object
+            --if key == "Base.Nails" then
+            --    nbOfItem = nbOfItem + playerInv:getCountTypeEvalRecurse("Base.NailsBox", buildUtil.predicateMaterial)*100;
+            --    if groundItemCounts["Base.NailsBox"] then
+            --        nbOfItem = nbOfItem + groundItemCounts["Base.NailsBox"]*100;
+            --    end
+            --end
+            required.have = nbOfItem
+            if required.num <= nbOfItem then required.valid = true else required.valid = false; haveRequired = false end
+        else
+            if required.isTag then
+                if playerInv:getFirstTagEvalRecurse(key, predicateNotBroken) then required.valid = true else required.valid = false; haveRequired = false end
+            else
+                if playerInv:getFirstTypeEvalRecurse(key, predicateNotBroken) then required.valid = true else required.valid = false; haveRequired = false end
             end
         end
+    end
+    return haveRequired or ISBuildMenu.cheat
+end
 
-        if instanceof(object, "IsoObject") and object:getSprite() and object:getSprite():getProperties() and object:getSprite():getProperties():Is(IsoFlagType.makeWindowInvincible) then
-        	return false
+function zxCommonCursor:tryBuild()
+    local player = self.playerObj
+    if not luautils.walkAdjWall(player, self.item:getSquare(), self.north ,true) then return player:Say("I can't walk there") end
+    --if not luautils.walkAdj(player, self.item:getSquare(), true) then return player:Say("I can't walk there") end
+    local inventory = self.playerObj:getInventory()
+    local groundItems = buildUtil.getMaterialOnGround(self.sq)
+
+    for key,required in pairs(self.required) do
+        if ISBuildMenu.cheat then
+            if required.num then
+                for i=1,required.num do
+                    inventory:AddItem(InventoryItemFactory.CreateItem(key))
+                end
+            --else
+            --    if required.isTag then
+            --        if not inventory:getFirstTagEvalRecurse(key, predicateNotBroken) then
+            --    else
+            --
+            --    end
+            end
+        end
+        if required.equip or required.equip2 then
+            local obj = required.isTag and inventory:getFirstTagEvalRecurse(key, predicateNotBroken) or inventory:getFirstTypeEvalRecurse(key, predicateNotBroken)
+            if not obj and groundItems[key] then
+                obj = groundItems[key][1]
+                ISTimedActionQueue.add(ISGrabItemAction:new(player, obj:getWorldItem(), 100))
+            end
+            if not obj then return player:Say("No Equip Item") end
+            local handitem = required.equip and player:getPrimaryHandItem() or player:getSecondaryHandItem()
+            ISWorldObjectContextMenu.equip(player, handitem, obj, required.equip)
+        end
+        if required.num then
+            local have = inventory:getItemCountRecurse(key)
+            if required.equip then have = have + 1 end
+            if required.equip2 then have = have + 1 end
+            if have < required.num and groundItems[key] then
+                for i = 1, required.num-have do
+                    local item = groundItems[key][i]
+                    if item then
+                        ISTimedActionQueue.add(ISGrabItemAction:new(player, groundItems[key][i]:getWorldItem(), 100))
+                        have = have +1
+                    end
+                end
+            end
+
+            ----alternatives, open box
+            --local alt = key.."Box"
+            --local have =
+            --if have < required.num and groundItems[alt] then
+            --    ISTimedActionQueue.add(ISGrabItemAction:new(player, groundItems[key.."Box"][i]:getWorldItem(), 100))
+            --end
+            if have < required.num then return player:Say("Where is "..key) end
         end
     end
-    if not validObject or not validObject:canAddSheetRope() then return false end
-
-    cursor.item = validObject
-    if player:getZ() > 0 and player:getInventory():containsTypeRecurse("Nails") and player:getInventory():getItemCountRecurse("SheetRope") >= validObject:countAddSheetRope() then
-        return true
-    elseif ISBuildMenu.cheat then
-        return true
-    end
-
-    return false
-end
-ISBuildMenu.onBarricade = function(worldobjects, player)
-    ISBuildMenu.cursor = ISBuildCursorMouse:new(player, ISBuildMenu.onBarricadeBuild, ISBuildMenu.isBarricadeValid)
-    getCell():setDrag(ISBuildMenu.cursor, player:getPlayerNum())
-
-    ISBuildMenu.cursor.sprite = "carpentry_01_8"
-    ISBuildMenu.cursor.westSprite = "carpentry_01_8"
-    ISBuildMenu.cursor.northSprite = "carpentry_01_9"
+    return self:create()
 end
 
-ISBuildMenu.onBarricadeBuild = function(cursor)
-    if ISBuildMenu.cheat then
-        local inv = ISBuildMenu.cursor.character:getInventory()
-        inv:AddItem("Plank")
-        inv:AddItems("Nails",2)
+function zxCommonCursor:hideTooltip()
+    if self.tooltip then
+        self.tooltip:removeFromUIManager()
+        self.tooltip:setVisible(false)
+        self.tooltip = nil
     end
-    return ISWorldObjectContextMenu.onBarricade(nil, ISBuildMenu.cursor.item, ISBuildMenu.cursor.player)
 end
 
+function zxCommonCursor:deactivate()
+    self:hideTooltip();
+end
 
-ISBuildMenu.isBarricadeValid = function()
-    if not ISBuildMenu.cursor or not ISBuildMenu.cursor.sq then
-        return false;
-    end
-    local cursor = ISBuildMenu.cursor
-    local player = cursor.character
-    local sq = cursor.sq
-    local validObject
+zxSheetRopeCursor = zxCommonCursor:derive("zxSheetRopeCursor")
 
-    --rotateCursor(cursor)
-    if cursor.nSprite > 2 then cursor.nSprite = 1 end
-    if cursor.nSprite == 1 then
-        cursor.sprite = cursor.westSprite
-        cursor.west = true
-        cursor.north = false
-    else
-        cursor.sprite = cursor.northSprite
-        cursor.west = false
-        cursor.north = true
-    end
+function zxSheetRopeCursor:new(player)
+    local o = zxCommonCursor.new(self,player)
+    o.sprite = "crafted_01_3"
+    --o.westSprite = "crafted_01_3"
+    o.northSprite = "crafted_01_4"
+    --o.eastSprite = "crafted_01_0"
+    --o.southSprite = "crafted_01_1"
+    o.tooltipName = getText("ContextMenu_Add_escape_rope_sheet")
+    o.required = { ["Hammer"] = { isTag = true, equip = true },
+                  ["Base.SheetRope"] = { isMaterial = true, num = 2},
+                  ["Base.Nails"] = { isMaterial = true, num = 1}}
+    o:initialise()
+    return o
+end
 
-    for i = 0, sq:getObjects():size() - 1 do
-        local object = sq:getObjects():get(i)
-        if (instanceof(object, "IsoThumpable") or instanceof(object, "IsoWindow") or instanceof(object, "IsoDoor")) and cursor.north == object:getNorth() and object:isBarricadeAllowed() then
-            --thump and not object:haveSheetRope()
-            local barricade = object:getBarricadeForCharacter(player)
-            if not barricade or barricade:canAddPlank() then
-                validObject = object
+function zxSheetRopeCursor:isValid(square)
+    if self. sq ~= square or self.nFrame % self.refresh == 0 then
+        self.sq = square
+        self.nFrame = 0
+
+        local validObject
+        for i = 0, square:getObjects():size() - 1 do
+            local object = square:getObjects():get(i);
+            if instanceof(object, "IsoThumpable") and not object:isDoor() and object:isWindow() or instanceof(object, "IsoWindow") then
+                if not object:isBarricaded() and self.north == object:getNorth() then
+                    validObject = object
+                end
+            elseif object:getSprite() and object:getSprite():getProperties() and (object:getSprite():getProperties():Is(IsoFlagType.HoppableN) or object:getSprite():getProperties():Is(IsoFlagType.HoppableW)) then
+                if self.north and object:getSprite():getProperties():Is(IsoFlagType.HoppableN) or self.west and object:getSprite():getProperties():Is(IsoFlagType.HoppableW) then
+                    validObject = object
+                end
+            end
+            if validObject then
+                local count = validObject:countAddSheetRope()
+                if count > 0 then
+                    self.required["Base.SheetRope"].num = count
+                else
+                    validObject = nil
+                end
+            end
+            if instanceof(object, "IsoObject") and object:getSprite() and object:getSprite():getProperties() and object:getSprite():getProperties():Is(IsoFlagType.makeWindowInvincible) then
+                validObject = nil
                 break
             end
         end
+        self.item = validObject
+        if validObject and self:checkRequired(square) then
+            self.valid = true
+        else
+            self.valid = false
+        end
     end
+    self.nFrame = self.nFrame +1
+    return self.valid
+end
 
-    if not validObject then return end
-    if player:getInventory():containsTagEvalRecurse("Hammer", predicateNotBroken) and player:getInventory():containsTypeRecurse("Plank") and player:getInventory():getItemCountRecurse("Base.Nails") >= 2 or ISBuildMenu.cheat then
-        cursor.item = validObject
-        return true
+function zxSheetRopeCursor:create()
+    ISTimedActionQueue.add(ISAddSheetRope:new(self.playerObj, self.item))
+end
+
+zxBarricadeCursor = zxCommonCursor:derive("zxBarricadeCursor")
+
+function zxBarricadeCursor:new(player)
+    local o = zxCommonCursor.new(self,player)
+    o.sprite = "carpentry_01_8"
+    --o.westSprite = "carpentry_01_8"
+    o.northSprite = "carpentry_01_9"
+    o.tooltipName = getText("ContextMenu_Barricade")
+    o.required = { ["Hammer"] = { isTag = true, equip = true},
+                  ["Base.Plank"] = { num = 1, equip2 = true },
+                  ["Base.Nails"] = { isMaterial = true, num = 2}}
+    o:initialise()
+    return o
+end
+
+function zxBarricadeCursor:isValid(square)
+    if self. sq ~= square or self.nFrame >= self.refresh then
+        self.sq = square
+        self.nFrame = 0
+        local player = self.playerObj
+        local validObject
+        --test
+        --if getDebug() then for i=0, square:getObjects():size()-1 do if instanceof(square:getObjects():get(i), "BarricadeAble") then print("zxtest, barricadeable", square:getObjects():get(i)) end end end
+
+        for i = 0, square:getObjects():size() - 1 do
+            local object = square:getObjects():get(i)
+            if (instanceof(object, "IsoThumpable") or instanceof(object, "IsoWindow") or instanceof(object, "IsoDoor")) and self.north == object:getNorth() and object:isBarricadeAllowed() then
+                --thump and not object:haveSheetRope()
+                local barricade = object:getBarricadeForCharacter(player)
+                if not barricade or barricade:canAddPlank() then
+                    validObject = object
+                    break
+                end
+            end
+        end
+        self.item = validObject
+        if validObject and self:checkRequired(square) then
+            self.valid = true
+        else
+            self.valid = false
+        end
     end
-    return false
+    self.nFrame = self.nFrame + 1
+    return self.valid
+end
+
+function zxBarricadeCursor:create()
+    ISTimedActionQueue.add(ISBarricadeAction:new(self.playerObj, self.item, false, false, (100 - (self.playerObj:getPerkLevel(Perks.Woodwork) * 5))))
 end
