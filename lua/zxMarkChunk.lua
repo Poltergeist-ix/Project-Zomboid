@@ -135,7 +135,7 @@ function zxMarkChunk:OnMarkChunk()
     if type(yOff) == "number" then y = y + yOff end
     y = math.floor(tonumber(y))
 
-    if x < 0 or y < 0 then return print("Can't mark negative chunks") end
+    if x < 0 or y < 0 then return print("Can't mark negative chunks") end --not yet
     local IsoChunk = getCell():getChunk(x,y)
     if not IsoChunk then
         return self:addToCheck(x,y)
@@ -149,24 +149,21 @@ function zxMarkChunk:onRemoveFromUIManager()
 end
 
 function zxMarkChunk:addToCheck(x,y)
-    zxMarkChunk.toCheck = { x = x, y = y, checked = {}, instance = self }
+    zxMarkChunk.toCheck = { x = x, y = y, instance = self }
     return Events.LoadGridsquare.Add(zxMarkChunk.checkToMark)
 end
 
 function zxMarkChunk.checkToMark(square)
     if not zxMarkChunk.toCheck then return Events.LoadGridsquare.Remove(zxMarkChunk.checkToMark) end
-    if zxMarkChunk.toCheck.checked[square:getChunk()] then return end
-    local x, y, chunk = math.floor(square:getX()/10), math.floor(square:getY()/10), square:getChunk()
-    zxMarkChunk.toCheck.checked[chunk] = true
+    local x, y = math.floor(square:getX()/10), math.floor(square:getY()/10)
     if x == zxMarkChunk.toCheck.x and y == zxMarkChunk.toCheck.y then
         Events.LoadGridsquare.Remove(zxMarkChunk.checkToMark)
-        zxMarkChunk.toCheck.instance:markChunk(chunk,x,y)
+        zxMarkChunk.toCheck.instance:markChunk(square:getChunk(),x,y)
         zxMarkChunk.toCheck = nil
     end
 end
 
 require "ISUI/ISCollapsableWindow"
-
 zxMarkChunkWindow = ISCollapsableWindow:derive("zxMarkChunkWindow")
 
 function zxMarkChunkWindow:new(x,y,w,h)
@@ -212,7 +209,7 @@ function zxMarkChunkWindow.toggleWindow()
         instance.reallyvisible = true
         zxMarkChunkWindow.instance = instance
         instance:addToUIManager()
-        ISLayoutManager.RegisterWindow('zxmarkchunk', zxMarkChunk, instance)
+        ISLayoutManager.RegisterWindow('zxmarkchunkwindow', zxMarkChunkWindow, instance)
     end
 end
 
@@ -230,3 +227,4 @@ local function OnKeyPressed(key)
 end
 
 Events.OnKeyPressed.Add(OnKeyPressed)
+
