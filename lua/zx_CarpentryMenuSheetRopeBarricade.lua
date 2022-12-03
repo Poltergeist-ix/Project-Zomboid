@@ -81,7 +81,8 @@ function zxCommonCursor:renderTooltip()
         self.tooltip = tooltip
     end
     if self.item then
-        tooltip:setTexture(self.item:getTextureName())
+        --tooltip:setTexture(self.item:getTextureName())
+        tooltip.texture = self.item:getSprite()
         local description = "Required:"
         for key,required in pairs(self.required) do
             description = description .. string.format(required.text,required.valid and richGood or richBad,required.num,required.have)
@@ -93,8 +94,35 @@ function zxCommonCursor:renderTooltip()
     end
 end
 
+--buildUtil.getMaterialOnGround, only same side of walls
+function zxCommonCursor:getMaterialOnGround()
+    local result = {}
+    if not self.item then return result end
+    local squareToCheck = self.north and self.playerObj:getY() < self.item:getY() and self.sq:getAdjacentSquare(IsoDirections.N) or self.west and self.playerObj:getX() < self.item:getX() and self.sq:getAdjacentSquare(IsoDirections.W) or self.sq
+    for x=squareToCheck:getX()-1,squareToCheck:getX()+1 do
+        for y=squareToCheck:getY()-1,squareToCheck:getY()+1 do
+            local square = getCell():getGridSquare(x,y,squareToCheck:getZ())
+            if square and (square == squareToCheck or not square:isBlockedTo(squareToCheck)) then
+
+                local wobs = square:getWorldObjects()
+                for i = 0,wobs:size() -1 do
+                    local item = wobs:get(i):getItem()
+                    if buildUtil.predicateMaterial(item) then
+                        local items = result[item:getFullType()] or {}
+                        table.insert(items, item)
+                        result[item:getFullType()] = items
+                        result[item:getType()] = items
+                    end
+                end
+            end
+        end
+    end
+    return result
+end
+
 function zxCommonCursor:checkRequired(square)
-    local groundItems = buildUtil.getMaterialOnGround(square);
+    --local groundItems = buildUtil.getMaterialOnGround(square);
+    local groundItems = self:getMaterialOnGround()
     local groundItemCounts = buildUtil.getMaterialOnGroundCounts(groundItems)
     --local groundItemUses = buildUtil.getMaterialOnGroundUses(groundItems)
     local playerInv = self.playerObj:getInventory()
@@ -129,7 +157,7 @@ function zxCommonCursor:tryBuild()
     if not luautils.walkAdjWall(player, self.item:getSquare(), self.north ,true) then return player:Say("I can't walk there") end
     --if not luautils.walkAdj(player, self.item:getSquare(), true) then return player:Say("I can't walk there") end
     local inventory = self.playerObj:getInventory()
-    local groundItems = buildUtil.getMaterialOnGround(self.sq)
+    local groundItems = self:getMaterialOnGround()
 
     for key,required in pairs(self.required) do
         if ISBuildMenu.cheat then
