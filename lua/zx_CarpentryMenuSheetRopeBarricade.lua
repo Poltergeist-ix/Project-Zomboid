@@ -81,8 +81,8 @@ function zxCommonCursor:renderTooltip()
         self.tooltip = tooltip
     end
     if self.item then
-        --tooltip:setTexture(self.item:getTextureName())
-        tooltip.texture = self.item:getSprite()
+        tooltip:setTexture(self.item:getTextureName())
+        --tooltip.texture = self.item:getSprite()
         local description = "Required:"
         for key,required in pairs(self.required) do
             description = description .. string.format(required.text,required.valid and richGood or richBad,required.num,required.have)
