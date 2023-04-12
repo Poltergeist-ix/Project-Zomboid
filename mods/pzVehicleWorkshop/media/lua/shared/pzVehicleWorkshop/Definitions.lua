@@ -1,4 +1,5 @@
-local util = {}
+pzVehicleWorkshop = pzVehicleWorkshop or {}
+local util = pzVehicleWorkshop
 util.vehicleSettings = {}
 
 --util.vehicleDefs["Base.CarStationWagon"] = {}
@@ -12,7 +13,7 @@ function util.add(scriptName,values,events)
     end
 
     for k,v in pairs (events) do
-        if type(v) == "function" and k ~= "id" then
+        if type(v) == "function" then
             if def[k] then table.insert(def[k],v) else def[k] = {v} end
         end
     end
@@ -34,9 +35,9 @@ end
 
 function util.call(event,scriptName,...)
     local modScript = util.vehicleSettings[scriptName]
-    if not modScript or modScript[event] then return end
+    if not modScript or not modScript[event] then return end
     for _ , f in ipairs(modScript[event]) do
-        modScript:f(...)
+        f(modScript,...)
     end
 end
 

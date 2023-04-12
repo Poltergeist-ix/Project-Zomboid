@@ -10,7 +10,7 @@ end
 
 function Server.patchCreateEngine(CreateEngine)
     return function(vehicle,...)
-        modTable.call("createEngine",vehicle:getScriptName(),...)
+        modTable.call("createEngine",vehicle:getScriptName(),vehicle,...)
         --local scriptName = vehicle:getScriptName()
         --local opt = modTable.vehicleSettings[scriptName]
         --if opt.createEngine ~= nil then
