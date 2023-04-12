@@ -2,13 +2,29 @@ local modTable = require "pzVehicleWorkshop/Definitions"
 
 local UI = {}
 
+function UI.add(config)
+    if config.VehicleMechanics ~= nil then
+        local vehicleSettings = UI.VehicleMechanics.vehicleSettings[config.vehicle] or {id=config.vehicle}
+        for k,v in pairs (config.VehicleMechanics) do
+            if type(v) == "function" then
+                if vehicleSettings[k] then table.insert(vehicleSettings[k],v) else vehicleSettings[k] = {v} end
+            end
+        end
+        UI.VehicleMechanics.vehicleSettings[config.vehicle] = vehicleSettings
+    end
+end
+
 UI.settings = {
     fontSmallHeight = getTextManager():getFontHeight(UIFont.Small),
     fontMediumHeight = getTextManager():getFontHeight(UIFont.Medium)
 }
 
----VehicleMechanics functions
+--[[ VehicleMechanics functions
+TODO pass conf table together with call // vehicleConf:onOpen(window)
+]]
 UI.VehicleMechanics = {}
+UI.VehicleMechanics.vehicleSettings = {}
+
 function UI.VehicleMechanics.updateTitle(window,vehicleSettings)
     window.extraTitleSpace = 0
     local prevTitle = window.VWTitle
@@ -22,141 +38,52 @@ function UI.VehicleMechanics.updateTitle(window,vehicleSettings)
     end
 end
 
----VehicleMechanics patches
-UI.VehicleMechanicsPatches = {}
-
-function UI.VehicleMechanicsPatches.titleBarHeight(titleBarHeight)
-    return function(self)
-        return titleBarHeight(self) + (self.extraTitleSpace or 0)
+function UI.VehicleMechanics.onOpenPanel(window)
+    local t = (window.vwVehicleSettings or {}).openPanel
+    if not t then return end
+    for _,f in ipairs(t) do
+        f(window)
     end
 end
+
+--[[
+pass context
+if prev options and not visible get new
+if not visible and options then set visible
+--]]
+function UI.VehicleMechanics.doVehicleContext(self,x,y)
+    --print("UI.VehicleMechanics.doVehicleContext")
+    local contextCalls = (self.vwVehicleSettings or {}).vehicleContext
+    if not contextCalls then return end
+    for _,f in ipairs(contextCalls) do
+        f(self,x,y)
+    end
+end
+
+
+--[[ VehicleMechanics patches ]]
+UI.VehicleMechanicsPatches = {}
+
+--function UI.VehicleMechanicsPatches.titleBarHeight(titleBarHeight) --doesn't work as intended // makes title bar bigger
+--    return function(self)
+--        return titleBarHeight(self) + (self.extraTitleSpace or 0)
+--    end
+--end
 
 function UI.VehicleMechanicsPatches.initParts(initParts)
     return function(self)
         initParts(self)
         if not self.vehicle then return end
 
-        ---sort protection parts to relative items
-        ---two tables: vehiclePart unordered categories that contains parts tables / the bodyworklist ordered items
-        ---iterate and remove protection, place after part - what if no part ?
-        ---^ validate defs when generating them
-        ---reverse iterate and move if part found - need move everything again?
+        local vehicleScriptName = self.vehicle:getScriptName()
+        self.vwVehicleSettings = UI.VehicleMechanics.vehicleSettings[vehicleScriptName]
 
-        ---get vehicle settings
-        local vehiclesToSort = { ["AVC.CarStationWagonTiered"] = true }
-        --local vehicleSettings = vehiclesToSort
-        --self.vwVehicleSettings = {}
+        --[[ prev state ]]
 
-        ---UI.VehicleMechanics.updateTitle(self, vehicleSettings)
-        --window scales with text, resize on open
-        if not self.vwBodyworklistElement then
-            local x,y,w,h = self.bodyworklist:getX(), self.bodyworklist:getY() - (self.vwBodyworklistOffset or 0), self.bodyworklist:getWidth(), UI.settings.fontMediumHeight
+        --[[ calls ]]
+        UI.VehicleMechanics.onOpenPanel(self)
 
-            local panel = ISPanel:new(x,y,w,h)
-            panel.borderColor = {r=0.18, g=0.22, b=0.26, a=1}
-            panel.backgroundColor = {r=0.12, g=0.14, b=0.16, a=0.7}
-            self.vwBodyworklistElement = panel
-            self:addChild(panel)
-
-            local offset = math.floor((h - 12)/2) --getHeight
-            panel.image = ISImage:new(2, offset, h, h, getTexture("QualityStar_5") ) --save text
-            panel:addChild(panel.image)
-
-            panel.label = ISLabel:new(20, 0, UI.settings.fontMediumHeight, getText("Tier %1 Vehicle",tostring(1)), self.partCatRGB.r, self.partCatRGB.g, self.partCatRGB.b, self.partCatRGB.a, UIFont.Medium, true)
-            panel:addChild(panel.label)
-        end
-
-        local y1 = self:titleBarHeight() + 10 + 5 + getTextManager():getFontHeight(UIFont.Medium) + getTextManager():getFontHeight(UIFont.Small) * (5 + 1) + 10 --createChildren
-
-        --local h = UI.settings.medLineHeight
-        --local x,y,w,h = self.bodyworklist:getX(), y1, self.bodyworklist:getWidth(), h
-        --local x,y,w,h = 10, self:titleBarHeight() + 10 + 5, 280, 20
-
-        --self.zxPanel:setX(x)
-        --self.zxPanel:setY(y)
-        --self.zxPanel:setWidth(w)
-        --self.zxPanel:setHeight(h)
-
-        --self.zxPanel:setVisible(true)
-
-        --self.zxPanel.render = function(self) self:drawTextCentre("Tier 1", self.width/2, 5, 1, 0.1, 0.1, 1, UIFont.Small) end
-        --self.zxPanel.render = function(self) self:drawText("* Tier 1 Vehicle", 10, 0, 1, 0.1, 0.1, 1, UIFont.Medium) end
-
-        --self.listbox:setY(y)
-        self.bodyworklist:setY(self.vwBodyworklistElement.y + self.vwBodyworklistElement.height)
-
-        zxtest = self.vwBodyworklistElement
-        if not vehiclesToSort[self.vehicle:getScriptName()] then
-            return
-        end
-
-        ---generate list if it doesn't exist
-        local def = {}
-        local def2 = {}
-        for i = 1, #self.bodyworklist.items do
-            local part = self.bodyworklist.items[i].item.part
-            if part ~= nil then
-                local partId = part:getId()
-                local sub, n = partId:gsub("^Armor_","")
-                if n == 1 then
-                    def[partId] = sub
-                    def2[sub] = partId
-                end
-            end
-        end
-
-        --local index = 2
-        --while true do
-        --    local part = self.bodyworklist.items[index].item.part
-        --    if part then
-        --        local partId = part:getId()
-        --        local iSub = part:getId():find("Protection$")
-        --        if iSub ~= nil then
-        --            def[partId] = partId:sub(0,iSub-1)
-        --        end
-        --        index = index + 1
-        --    else
-        --        break
-        --    end
-        --end
-        --zx.printTableRecursive(self.bodyworklist.items)
-        zx.printTableRecursive(def)
-
-        ---sort test
-
-        local popped = {}
-        local index = 0
-        for i,item in ipairs(self.bodyworklist.items) do
-            local part = item.item.part
-            local id = part and part:getId()
-
-            if def[id] then
-                popped[def[id]] = item
-            else
-                index = index + 1
-                item.itemindex = index
-                self.bodyworklist.items[index] = item
-                if popped[id] then
-                    index = index + 1
-                    popped[id].itemindex = index
-                    self.bodyworklist.items[index] = popped[id]
-                    popped[id] = nil
-                end
-            end
-        end
-        if not table.isempty(popped) then
-            print("AVC Warning: bad parts")
-            local cat = {name="Misc Armor",cat=true}
-            local item = self.bodyworklist:addItem(cat.name,cat)
-            index = index + 1
-            item.itemindex = index
-            self.bodyworklist.items[index] = item
-            for i,v in pairs(popped) do
-                index = index + 1
-                v.itemindex = index
-                self.bodyworklist.items[index] = v
-            end
-        end
+        --[[ finish ]]
     end
 end
 
@@ -176,7 +103,7 @@ function UI.VehicleMechanicsPatches.doPartContextMenu(doPartContextMenu)
         doPartContextMenu(self,part,x,y)
 
         if isGamePaused() then return end
-        local playerObj = getSpecificPlayer(self.playerNum);
+        local playerObj = getSpecificPlayer(self.playerNum)
         if playerObj:getVehicle() ~= nil and not (isDebugEnabled() or (isClient() and (isAdmin() or getAccessLevel() == "moderator"))) then return end
 
         local context = self.context
@@ -184,7 +111,10 @@ function UI.VehicleMechanicsPatches.doPartContextMenu(doPartContextMenu)
             if part:getTable("unmount") then
                 local recipe = getScriptManager():getRecipe(part:getTable("unmount").recipe)
                 if recipe ~= nil then
-                    context:addOption("Remove " .. getText("IGUI_VehiclePart" .. part:getId()),playerObj,removeArmor,self.vehicle,part)
+                    local option = context:addOption("Remove " .. getText("IGUI_VehiclePart" .. part:getId()),playerObj,removeArmor,self.vehicle,part)
+                    if not RecipeManager.IsRecipeValid(recipe,playerObj,part:getInventoryItem(),ISInventoryPaneContextMenu.getContainers(playerObj)) then
+                        option.notAvailable = true
+                    end
                 end
             end
         else
@@ -200,6 +130,16 @@ function UI.VehicleMechanicsPatches.doPartContextMenu(doPartContextMenu)
                 end
             end
         end
+
+        if JoypadState.players[self.playerNum + 1] then UI.VehicleMechanics.doVehicleContext(self,x,y) end
+    end
+end
+
+function UI.VehicleMechanicsPatches.onRightMouseUp(onRightMouseUp)
+    return function(self,x,y)
+        onRightMouseUp(self,x,y)
+
+        UI.VehicleMechanics.doVehicleContext(self,x,y)
     end
 end
 
@@ -222,4 +162,5 @@ local function reloaded()
 end
 if getPlayer() then reloaded() end
 
+modTable.UI = UI
 return UI

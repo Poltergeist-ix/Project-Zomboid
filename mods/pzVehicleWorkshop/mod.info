@@ -1,6 +1,6 @@
 id=pzVehicleWorkshop
 name=PZ Vehicle Workshop API
-description=Mod Templatedescription=This mod aims to make it simpler to add and customize vehicles, so that vehicle moders can focus on models and scripts only.
+description=This mod adds tools and tweaks vanilla classes to make vehicles modding easier.
 poster=poster.png
 icon=poster.png
-authors=zxPoltergeist
+authors=Poltergeist
