@@ -88,48 +88,93 @@ function UI.VehicleMechanicsPatches.initParts(initParts)
 end
 
 function UI.VehicleMechanicsPatches.doPartContextMenu(doPartContextMenu)
-    local function addArmor(player,vehicle,part,item,itemType)
-        print("add armor ",player,vehicle,part,item,itemType)
-        local partId = part:getId()
-        part:setInventoryItem(item)
-        part:setModelVisible(itemType,true)
+    local function addArmor(player, vehicle, part, item, recipe, containers)
+        print("add armor ",player, part, item, recipe, containers)
+
+        --local action = modTable.installAction:new(player,part,item,recipe:getTimeToMake())
+        --action.vehicleRecipe = recipe
+        --action.containers = containers
+        --ISTimedActionQueue.add(action)
+
+        local result = InventoryItemFactory.CreateItem(recipe:getResult():getFullType())
+        sendClientCommand(player, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = vehicle:getId(), part = part:getId(), item = result, setModelFromType = true })
+
     end
     local function removeArmor(player,vehicle,part)
-        print("removeArmor ",player,vehicle,part)
-        part:setInventoryItem(nil)
+        --print("removeArmor ",player,vehicle,part)
+        sendClientCommand(player, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = vehicle:getId(), part = part:getId(), item = false })
     end
 
     return function(self,part,x,y)
         doPartContextMenu(self,part,x,y)
 
         if isGamePaused() then return end
-        local playerObj = getSpecificPlayer(self.playerNum)
-        if playerObj:getVehicle() ~= nil and not (isDebugEnabled() or (isClient() and (isAdmin() or getAccessLevel() == "moderator"))) then return end
+        local player = getSpecificPlayer(self.playerNum)
+        if player:getVehicle() ~= nil and not (isDebugEnabled() or (isClient() and (isAdmin() or getAccessLevel() == "moderator"))) then return end
 
+        local hasOptions
         local context = self.context
-        if part:getInventoryItem() then
-            if part:getTable("unmount") then
-                local recipe = getScriptManager():getRecipe(part:getTable("unmount").recipe)
-                if recipe ~= nil then
-                    local option = context:addOption("Remove " .. getText("IGUI_VehiclePart" .. part:getId()),playerObj,removeArmor,self.vehicle,part)
-                    if not RecipeManager.IsRecipeValid(recipe,playerObj,part:getInventoryItem(),ISInventoryPaneContextMenu.getContainers(playerObj)) then
+        if part:getInventoryItem() ~= nil then
+            local unmount = part:getTable("unmountRecipes")
+            if unmount ~= nil then
+                local partText = getText("IGUI_VehiclePart" .. part:getId())
+                local playerInv = player:getInventory()
+                local containers = ISInventoryPaneContextMenu.getContainers(player)
+                for _,recipeName in ipairs(unmount) do
+                    local recipe = getScriptManager():getRecipe(recipeName)
+                    if recipe ~= nil then
+                        local fullType = recipe:getSource():get(0):getItems():get(0)
+                        local item = playerInv:getFirstType(fullType) or getDebug() and player:getInventory():AddItem(fullType) --fixme
+                        local valid = RecipeManager.IsRecipeValid(recipe, player, item, containers)
+                        local option = context:addOption(getText("IGUI_Uninstall") .. " " .. partText, player, removeArmor, self.vehicle, part, containers) --text
+                        if not valid then
+                            option.notAvailable = true
+                        end
+                    else
+                        local option = context:addOption(getText("Recipe %1 for %2 not found ", recipeName, partText))
                         option.notAvailable = true
                     end
                 end
+                hasOptions = true
             end
         else
-            if part:getTable("mount") then
-                local containerList = ISInventoryPaneContextMenu.getContainers(playerObj)
-                for i = 0, part:getItemType():size() - 1 do
-                    local itemType = part:getItemType():get(i)
-                    local item = playerObj:getInventory():getFirstType(itemType) or getDebug() and playerObj:getInventory():AddItem(itemType)
-                    local recipes = RecipeManager.getUniqueRecipeItems(item, playerObj, containerList) --only shows recipes that can be done
-                    if recipes ~= nil then
-                        context:addOption("Add Armor to " .. getText("IGUI_VehiclePart" .. part:getId()),playerObj,addArmor,self.vehicle,part,item,itemType)
+            local mount = part:getTable("mountRecipes")
+            if mount ~= nil then
+                local partText = getText("IGUI_VehiclePart" .. part:getId())
+                local playerInv = player:getInventory()
+                local containers = ISInventoryPaneContextMenu.getContainers(player)
+                for _,recipeName in ipairs(mount) do
+                    local recipe = getScriptManager():getRecipe(recipeName)
+                    if recipe ~= nil then
+                        local fullType = recipe:getSource():get(0):getItems():get(0)
+                        local item = playerInv:getFirstType(fullType) or getDebug() and InventoryItemFactory.CreateItem("")--player:getInventory():AddItem(fullType) --fixme
+                        local valid = item and RecipeManager.IsRecipeValid(recipe, player, item, containers)
+                        local option = context:addOption(getText("IGUI_Install") .. " " .. partText, player, addArmor, self.vehicle, part, item, recipe, containers) --text
+                        if not valid then
+                            option.notAvailable = true
+                        end
+                    else
+                        local option = context:addOption(getText("Recipe %1 for %2 not found ", recipeName, partText))
+                        option.notAvailable = true
                     end
                 end
+                hasOptions = true
             end
+
+            --if part:getTable("mount") then
+            --    local containerList = ISInventoryPaneContextMenu.getContainers(player)
+            --    for i = 0, part:getItemType():size() - 1 do
+            --        local itemType = part:getItemType():get(i)
+            --        local item = player:getInventory():getFirstType(itemType) or getDebug() and player:getInventory():AddItem(itemType)
+            --        local recipes = RecipeManager.getUniqueRecipeItems(item, player, containerList) --only shows recipes that can be done
+            --        if recipes ~= nil then
+            --            context:addOption("Add Armor to " .. getText("IGUI_VehiclePart" .. part:getId()), player,addArmor,self.vehicle,part,item,itemType)
+            --        end
+            --    end
+            --end
         end
+
+        if hasOptions then context:setVisible(true) end
 
         if JoypadState.players[self.playerNum + 1] then UI.VehicleMechanics.doVehicleContext(self,x,y) end
     end

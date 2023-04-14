@@ -1,5 +1,10 @@
 pzVehicleWorkshop = pzVehicleWorkshop or {}
 local util = pzVehicleWorkshop
+
+--fixme
+util.util = {}
+util.serverCommands = {}
+
 util.vehicleSettings = {}
 
 --util.vehicleDefs["Base.CarStationWagon"] = {}
@@ -8,17 +13,23 @@ util.vehicleSettings = {}
 function util.add(scriptName,values,events)
     local def = util.vehicleSettings[scriptName] or {id=scriptName}
 
-    for k,v in pairs(values) do
-        def[k] = v
+    if values ~= nil then
+        for k,v in pairs(values) do
+            def[k] = v
+        end
     end
 
-    for k,v in pairs (events) do
-        if type(v) == "function" then
-            if def[k] then table.insert(def[k],v) else def[k] = {v} end
+    if events ~= nil then
+        for k,v in pairs (events) do
+            if type(v) == "function" then
+                if def[k] then table.insert(def[k],v) else def[k] = {v} end
+            end
         end
     end
 
     util.vehicleSettings[scriptName] = def
+
+    --return def
 end
 
 function util.getSettings(scriptName)
