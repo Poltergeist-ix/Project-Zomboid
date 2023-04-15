@@ -35,7 +35,6 @@ function pzVehicleWorkshop.serverCommands.setItemPart(player,args) --"install"
     elseif instanceof(args.item,"InventoryItem") then
         part:setInventoryItem(args.item)
         if args.setModelFromType then
-            print("set model",args.item:getFullType())
             part:setModelVisible(args.item:getFullType(),true)
         end
     --else

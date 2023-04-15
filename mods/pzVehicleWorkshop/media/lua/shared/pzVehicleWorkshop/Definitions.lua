@@ -6,6 +6,11 @@ util.util = {}
 util.serverCommands = {}
 
 util.vehicleSettings = {}
+--[[
+    set function type
+    ?
+    customDrawItems
+--]]
 
 --util.vehicleDefs["Base.CarStationWagon"] = {}
 --util.vehicleDefs["Base.CarStationWagon2"] = util.vehicleDefs["Base.CarStationWagon"]

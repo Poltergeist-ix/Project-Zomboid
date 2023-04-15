@@ -1,4 +1,4 @@
-local modTable = require "pzVehicleWorkshop/Definitions"
+local pzVehicleWorkshop = pzVehicleWorkshop
 local ArmoredVanillaCars = {}
 ArmoredVanillaCars.definitions = {}
 
@@ -79,6 +79,14 @@ function ArmoredVanillaCars.openPanel(window)
             v.itemindex = index
             window.bodyworklist.items[index] = v
         end
+    end
+end
+
+function ArmoredVanillaCars.drawArmorItems(def,window,y,item,alt)
+    if item.item.part ~= nil and item.item.part:getInventoryItem() == nil and item.item.part:getId():find("^Armor_") ~= nil then
+        window:drawText(item.item.name, 20, y, 0.4, 0.32, 0.32, 1, UIFont.Small)
+
+        return y + window.itemheight
     end
 end
 
@@ -207,18 +215,122 @@ function ArmoredVanillaCars.showVehicleTierLevel()
     end
 end
 
+function ArmoredVanillaCars.onVehicleAction(player, vehicle, part, item, recipe, containers)
+    --ISVehiclePartMenu.transferRequiredItems(player, part, tbl)
+    --ISVehiclePartMenu.equipRequiredItems(player, part, tbl)
+    if not ISVehicleMechanics.cheat then
+        if player:getVehicle() ~= nil then
+            ISVehicleMenu.onExit(player)
+        end
+        ISTimedActionQueue.add(ISPathFindAction:pathToVehicleArea(player, vehicle, part:getArea()))
+    end
+end
+
+function ArmoredVanillaCars.onAddArmor(player, vehicle, part, item, recipe, containers)
+    --print("add armor ",player, part, item, recipe, containers)
+    ArmoredVanillaCars.onVehicleAction(player, vehicle, part, item, recipe, containers)
+    ISTimedActionQueue.add(pzVehicleWorkshop.installAction:new(player, vehicle, part, item, recipe, containers))
+
+    --local result = InventoryItemFactory.CreateItem(recipe:getResult():getFullType())
+    --sendClientCommand(player, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = vehicle:getId(), part = part:getId(), item = result, setModelFromType = true })
+
+end
+
+function ArmoredVanillaCars.onRemoveArmor(player,vehicle,part)
+    --print("removeArmor ",player,vehicle,part)
+    sendClientCommand(player, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = vehicle:getId(), part = part:getId(), item = false })
+end
+
+function ArmoredVanillaCars.addArmorOptions(def,self,part,x,y)
+    local hasOptions
+    local context = self.context
+    if part:getInventoryItem() ~= nil then
+        local unmount = part:getTable("unmountRecipes")
+        if unmount ~= nil then
+            local player = self.playerObj
+            local playerInv = player:getInventory()
+            local containers = ISInventoryPaneContextMenu.getContainers(player)
+            local partText = getText("IGUI_VehiclePart" .. part:getId())
+            for _,recipeName in ipairs(unmount) do
+                local recipe = getScriptManager():getRecipe(recipeName)
+                if recipe ~= nil then
+                    local fullType = recipe:getSource():get(0):getItems():get(0)
+                    local item = playerInv:getFirstType(fullType) or ISVehicleMechanics.cheat and playerInv:AddItem(fullType)
+                    local valid = item and RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
+                    local option = context:addOption(getText("IGUI_Uninstall") .. " " .. partText, player, ArmoredVanillaCars.onRemoveArmor, self.vehicle, part, containers) --text
+                    if not valid then
+                        option.notAvailable = true
+                    end
+                else
+                    local option = context:addOption(getText("Recipe %1 not found ", recipeName)) --text
+                    option.notAvailable = true
+                end
+            end
+            hasOptions = true
+        end
+    else
+        local mount = part:getTable("mountRecipes")
+        if mount ~= nil then
+            local player = self.playerObj
+            local playerInv = player:getInventory()
+            local containers = ISInventoryPaneContextMenu.getContainers(player)
+            local partText = getText("IGUI_VehiclePart" .. part:getId())
+            for _,recipeName in ipairs(mount) do
+                local recipe = getScriptManager():getRecipe(recipeName)
+                if recipe ~= nil then
+
+                    --local fullType = recipe:getSource():get(0):getItems():get(0)
+                    --local item = playerInv:getFirstType(fullType) or ISVehicleMechanics.cheat and playerInv:AddItem(fullType)
+                    --local valid = item and RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
+
+                    --local fullType = "Base.CarKey"
+                    --local item = self.vehicle:createKey()
+                    --local item = InventoryItemFactory.CreateItem("CarKey")
+                    local item = InventoryItemFactory.CreateItem("KeyRing"):getInventory():AddItem("CarKey")
+                    item:getModData().vehicleObj = self.vehicle
+                    local valid = RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
+
+                    local option = context:addOption(getText("IGUI_Install") .. " " .. partText, player, ArmoredVanillaCars.onAddArmor, self.vehicle, part, item, recipe, containers) --text
+                    if not valid then
+                        option.notAvailable = true
+                    end
+                    local tooltip = ISRecipeTooltip.addToolTip()
+                    tooltip.character = player
+                    tooltip.recipe = recipe
+                    tooltip:setName(recipe:getName())
+                    --if resultItem:getTexture() and resultItem:getTexture():getName() ~= "Question_On" then
+                    --    tooltip:setTexture(resultItem:getTexture():getName())
+                    --end
+                    option.toolTip = tooltip
+
+                else
+                    local option = context:addOption(getText("Recipe %1 for %2 not found ", recipeName, partText))
+                    option.notAvailable = true
+                end
+            end
+            hasOptions = true
+        end
+    end
+
+    if hasOptions then self.context:setVisible(true) end
+end
+
+if getPlayer() and not addDebugDefinitions then return end
 
 --[[ CarStationWagon ]]
 local UI = require "pzVehicleWorkshop/UI_patches"
 --local ArmoredVanillaCars = require "pzVehicleWorkshop/ArmoredVanillaCars.lua"
 
 local scriptName = "AVC.CarStationWagonTiered"
-modTable.UI.add{
+pzVehicleWorkshop.UI.add{
     vehicle = scriptName,
     VehicleMechanics = {
         openPanel = ArmoredVanillaCars.openPanel,
+        customDrawItems = ArmoredVanillaCars.drawArmorItems,
     }
 }
+
+pzVehicleWorkshop.add(scriptName,nil,{ partContext = ArmoredVanillaCars.addArmorOptions})
 
 --for _,scriptName in ipairs({"Base.CarStationWagon","Base.CarStationWagon2"}) do
 --    ArmoredVanillaCars.definitions[scriptName] = {

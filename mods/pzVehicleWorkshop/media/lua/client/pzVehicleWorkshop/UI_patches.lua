@@ -1,4 +1,4 @@
-local modTable = require "pzVehicleWorkshop/Definitions"
+local pzVehicleWorkshop = pzVehicleWorkshop
 
 local UI = {}
 
@@ -60,8 +60,7 @@ function UI.VehicleMechanics.doVehicleContext(self,x,y)
     end
 end
 
-
---[[ VehicleMechanics patches ]]
+---[[ VehicleMechanics patches
 UI.VehicleMechanicsPatches = {}
 
 --function UI.VehicleMechanicsPatches.titleBarHeight(titleBarHeight) --doesn't work as intended // makes title bar bigger
@@ -88,95 +87,33 @@ function UI.VehicleMechanicsPatches.initParts(initParts)
 end
 
 function UI.VehicleMechanicsPatches.doPartContextMenu(doPartContextMenu)
-    local function addArmor(player, vehicle, part, item, recipe, containers)
-        print("add armor ",player, part, item, recipe, containers)
-
-        --local action = modTable.installAction:new(player,part,item,recipe:getTimeToMake())
-        --action.vehicleRecipe = recipe
-        --action.containers = containers
-        --ISTimedActionQueue.add(action)
-
-        local result = InventoryItemFactory.CreateItem(recipe:getResult():getFullType())
-        sendClientCommand(player, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = vehicle:getId(), part = part:getId(), item = result, setModelFromType = true })
-
-    end
-    local function removeArmor(player,vehicle,part)
-        --print("removeArmor ",player,vehicle,part)
-        sendClientCommand(player, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = vehicle:getId(), part = part:getId(), item = false })
-    end
-
     return function(self,part,x,y)
+        --alt call before
         doPartContextMenu(self,part,x,y)
 
-        if isGamePaused() then return end
-        local player = getSpecificPlayer(self.playerNum)
-        if player:getVehicle() ~= nil and not (isDebugEnabled() or (isClient() and (isAdmin() or getAccessLevel() == "moderator"))) then return end
+        if self.vwVehicleSettings ~= nil then
+            if isGamePaused() then return end
+            if not self.playerObj then self.playerObj = getSpecificPlayer(self.playerNum) end
+            if self.playerObj:getVehicle() ~= nil and not (isDebugEnabled() or (isClient() and (isAdmin() or getAccessLevel() == "moderator"))) then return end
 
-        local hasOptions
-        local context = self.context
-        if part:getInventoryItem() ~= nil then
-            local unmount = part:getTable("unmountRecipes")
-            if unmount ~= nil then
-                local partText = getText("IGUI_VehiclePart" .. part:getId())
-                local playerInv = player:getInventory()
-                local containers = ISInventoryPaneContextMenu.getContainers(player)
-                for _,recipeName in ipairs(unmount) do
-                    local recipe = getScriptManager():getRecipe(recipeName)
-                    if recipe ~= nil then
-                        local fullType = recipe:getSource():get(0):getItems():get(0)
-                        local item = playerInv:getFirstType(fullType) or getDebug() and player:getInventory():AddItem(fullType) --fixme
-                        local valid = RecipeManager.IsRecipeValid(recipe, player, item, containers)
-                        local option = context:addOption(getText("IGUI_Uninstall") .. " " .. partText, player, removeArmor, self.vehicle, part, containers) --text
-                        if not valid then
-                            option.notAvailable = true
-                        end
-                    else
-                        local option = context:addOption(getText("Recipe %1 for %2 not found ", recipeName, partText))
-                        option.notAvailable = true
-                    end
-                end
-                hasOptions = true
-            end
-        else
-            local mount = part:getTable("mountRecipes")
-            if mount ~= nil then
-                local partText = getText("IGUI_VehiclePart" .. part:getId())
-                local playerInv = player:getInventory()
-                local containers = ISInventoryPaneContextMenu.getContainers(player)
-                for _,recipeName in ipairs(mount) do
-                    local recipe = getScriptManager():getRecipe(recipeName)
-                    if recipe ~= nil then
-                        local fullType = recipe:getSource():get(0):getItems():get(0)
-                        local item = playerInv:getFirstType(fullType) or getDebug() and InventoryItemFactory.CreateItem("")--player:getInventory():AddItem(fullType) --fixme
-                        local valid = item and RecipeManager.IsRecipeValid(recipe, player, item, containers)
-                        local option = context:addOption(getText("IGUI_Install") .. " " .. partText, player, addArmor, self.vehicle, part, item, recipe, containers) --text
-                        if not valid then
-                            option.notAvailable = true
-                        end
-                    else
-                        local option = context:addOption(getText("Recipe %1 for %2 not found ", recipeName, partText))
-                        option.notAvailable = true
-                    end
-                end
-                hasOptions = true
-            end
+            pzVehicleWorkshop.call("partContext",self.vwVehicleSettings.id,self,part,x,y)
 
-            --if part:getTable("mount") then
-            --    local containerList = ISInventoryPaneContextMenu.getContainers(player)
-            --    for i = 0, part:getItemType():size() - 1 do
-            --        local itemType = part:getItemType():get(i)
-            --        local item = player:getInventory():getFirstType(itemType) or getDebug() and player:getInventory():AddItem(itemType)
-            --        local recipes = RecipeManager.getUniqueRecipeItems(item, player, containerList) --only shows recipes that can be done
-            --        if recipes ~= nil then
-            --            context:addOption("Add Armor to " .. getText("IGUI_VehiclePart" .. part:getId()), player,addArmor,self.vehicle,part,item,itemType)
-            --        end
-            --    end
-            --end
+            if JoypadState.players[self.playerNum + 1] then UI.VehicleMechanics.doVehicleContext(self,x,y) end
+        end
+    end
+end
+
+function UI.VehicleMechanicsPatches.doDrawItem(doDrawItem) --fixme use settings from shared
+    return function(self,...)
+        local def = self.vwVehicleSettings or self.parent and self.parent.vwVehicleSettings
+        if def ~= nil and def.customDrawItems ~= nil then
+            for _ , f in ipairs(def.customDrawItems) do
+                local r = f(def,self,...)
+                if r ~= nil then return r end
+            end
         end
 
-        if hasOptions then context:setVisible(true) end
-
-        if JoypadState.players[self.playerNum + 1] then UI.VehicleMechanics.doVehicleContext(self,x,y) end
+        return doDrawItem(self,...)
     end
 end
 
@@ -199,13 +136,16 @@ local function reloaded()
     local data = getPlayerData(id)
     if not data then return end
     local instance = data.mechanicsUI
+    instance:close()
+
     reloadLuaFile("media/lua/client/Vehicles/ISUI/ISVehicleMechanics.lua")
 
     UI.patchISVehicleMechanics(ISVehicleMechanics)
     data.mechanicsUI = ISVehicleMechanics:new(0,0,getPlayer(),nil)
-    --data.mechanicsUI.initParts = UI.patchISVehicleMechanics_initParts(ISVehicleMechanics.initParts)
+    data.mechanicsUI:initialise()
+    ISLayoutManager.RegisterWindow('mechanics'..id, ISVehicleMechanics, data.mechanicsUI)
 end
 if getPlayer() then reloaded() end
 
-modTable.UI = UI
+pzVehicleWorkshop.UI = UI
 return UI
