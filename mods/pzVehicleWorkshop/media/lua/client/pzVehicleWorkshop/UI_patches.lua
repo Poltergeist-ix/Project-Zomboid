@@ -2,28 +2,28 @@ local pzVehicleWorkshop = pzVehicleWorkshop
 
 local UI = {}
 
-function UI.add(config)
-    if config.VehicleMechanics ~= nil then
-        local vehicleSettings = UI.VehicleMechanics.vehicleSettings[config.vehicle] or {id=config.vehicle}
-        for k,v in pairs (config.VehicleMechanics) do
-            if type(v) == "function" then
-                if vehicleSettings[k] then table.insert(vehicleSettings[k],v) else vehicleSettings[k] = {v} end
-            end
-        end
-        UI.VehicleMechanics.vehicleSettings[config.vehicle] = vehicleSettings
-    end
-end
+--function UI.add(config)
+--    if config.VehicleMechanics ~= nil then
+--        local vehicleSettings = UI.VehicleMechanics.vehicleSettings[config.vehicle] or {id=config.vehicle}
+--        for k,v in pairs (config.VehicleMechanics) do
+--            if type(v) == "function" then
+--                if vehicleSettings[k] then table.insert(vehicleSettings[k],v) else vehicleSettings[k] = {v} end
+--            end
+--        end
+--        UI.VehicleMechanics.vehicleSettings[config.vehicle] = vehicleSettings
+--    end
+--end
 
 UI.settings = {
     fontSmallHeight = getTextManager():getFontHeight(UIFont.Small),
-    fontMediumHeight = getTextManager():getFontHeight(UIFont.Medium)
+    fontMediumHeight = getTextManager():getFontHeight(UIFont.Medium),
 }
 
 --[[ VehicleMechanics functions
 TODO pass conf table together with call // vehicleConf:onOpen(window)
 ]]
 UI.VehicleMechanics = {}
-UI.VehicleMechanics.vehicleSettings = {}
+--UI.VehicleMechanics.vehicleSettings = {}
 
 function UI.VehicleMechanics.updateTitle(window,vehicleSettings)
     window.extraTitleSpace = 0
@@ -39,10 +39,10 @@ function UI.VehicleMechanics.updateTitle(window,vehicleSettings)
 end
 
 function UI.VehicleMechanics.onOpenPanel(window)
-    local t = (window.vwVehicleSettings or {}).openPanel
+    local t = (window.vwVehicleSettings or {}).VehicleMechanics_OnOpen
     if not t then return end
     for _,f in ipairs(t) do
-        f(window)
+        f(window.vwVehicleSettings,window)
     end
 end
 
@@ -53,14 +53,24 @@ if not visible and options then set visible
 --]]
 function UI.VehicleMechanics.doVehicleContext(self,x,y)
     --print("UI.VehicleMechanics.doVehicleContext")
-    local contextCalls = (self.vwVehicleSettings or {}).vehicleContext
-    if not contextCalls then return end
-    for _,f in ipairs(contextCalls) do
+    local t = (self.vwVehicleSettings or {}).VehicleMechanics_VehicleContext
+    if not t then return end
+    for _,f in ipairs(t) do
         f(self,x,y)
     end
 end
 
----[[ VehicleMechanics patches
+function UI.VehicleMechanics.doPartContext(self,...)
+    --print("UI.VehicleMechanics.doVehicleContext")
+    local t = (self.vwVehicleSettings or {}).VehicleMechanics_PartContext
+    if not t then return end
+    for _,f in ipairs(t) do
+        f(self.vwVehicleSettings,self,...)
+    end
+end
+
+--- VehicleMechanics patches
+
 UI.VehicleMechanicsPatches = {}
 
 --function UI.VehicleMechanicsPatches.titleBarHeight(titleBarHeight) --doesn't work as intended // makes title bar bigger
@@ -75,7 +85,7 @@ function UI.VehicleMechanicsPatches.initParts(initParts)
         if not self.vehicle then return end
 
         local vehicleScriptName = self.vehicle:getScriptName()
-        self.vwVehicleSettings = UI.VehicleMechanics.vehicleSettings[vehicleScriptName]
+        self.vwVehicleSettings = pzVehicleWorkshop.VehicleSettings.get(vehicleScriptName)
 
         --[[ prev state ]]
 
@@ -96,19 +106,22 @@ function UI.VehicleMechanicsPatches.doPartContextMenu(doPartContextMenu)
             if not self.playerObj then self.playerObj = getSpecificPlayer(self.playerNum) end
             if self.playerObj:getVehicle() ~= nil and not (isDebugEnabled() or (isClient() and (isAdmin() or getAccessLevel() == "moderator"))) then return end
 
-            pzVehicleWorkshop.call("partContext",self.vwVehicleSettings.id,self,part,x,y)
+            --pzVehicleWorkshop.call("partContext",self.vwVehicleSettings.id,self,part,x,y)
+            UI.VehicleMechanics.doPartContext(self,part,x,y)
 
             if JoypadState.players[self.playerNum + 1] then UI.VehicleMechanics.doVehicleContext(self,x,y) end
         end
     end
 end
 
-function UI.VehicleMechanicsPatches.doDrawItem(doDrawItem) --fixme use settings from shared
+function UI.VehicleMechanicsPatches.doDrawItem(doDrawItem)
     return function(self,...)
-        local def = self.vwVehicleSettings or self.parent and self.parent.vwVehicleSettings
-        if def ~= nil and def.customDrawItems ~= nil then
-            for _ , f in ipairs(def.customDrawItems) do
-                local r = f(def,self,...)
+        local t = self.vwVehicleSettings or self.parent and self.parent.vwVehicleSettings
+        --if t ~= nil and t.VehicleMechanics_DrawItems ~= nil then
+        t = t and t.VehicleMechanics_DrawItems
+        if t ~= nil then
+            for _ , f in ipairs(t) do
+                local r = f(t,self,...)
                 if r ~= nil then return r end
             end
         end
@@ -125,7 +138,8 @@ function UI.VehicleMechanicsPatches.onRightMouseUp(onRightMouseUp)
     end
 end
 
-function UI.patchISVehicleMechanics(ISVehicleMechanics)
+function UI.patchISVehicleMechanics()
+    local ISVehicleMechanics = ISVehicleMechanics
     for key,patchFn in pairs(UI.VehicleMechanicsPatches) do
         ISVehicleMechanics[key] = patchFn(ISVehicleMechanics[key])
     end
@@ -147,5 +161,4 @@ local function reloaded()
 end
 if getPlayer() then reloaded() end
 
-pzVehicleWorkshop.UI = UI
-return UI
+pzVehicleWorkshop.UI_patches = UI

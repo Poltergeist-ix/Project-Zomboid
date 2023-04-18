@@ -1,39 +1,27 @@
 local pzVehicleWorkshop = pzVehicleWorkshop
-local ArmoredVanillaCars = {}
-ArmoredVanillaCars.definitions = {}
+local ArmoredVanillaCars = pzVehicleWorkshop.ArmoredVanillaCars or {}
 
-function ArmoredVanillaCars.addUpgradeOptions(self,x,y)
-    if isGamePaused() then return end
-    local playerObj = getSpecificPlayer(self.playerNum)
-    local player = playerObj
-    if playerObj:getVehicle() ~= nil and not (isDebugEnabled() or (isClient() and (isAdmin() or getAccessLevel() == "moderator"))) then return end
-    if not (self.context and self.context:isReallyVisible()) then
-        self.context = ISContextMenu.get(self.playerNum, x + self:getAbsoluteX(), y + self:getAbsoluteY())
-    end
+--function ArmoredVanillaCars.addUpgradeOptions(self,x,y)
+--    if isGamePaused() then return end
+--    local playerObj = getSpecificPlayer(self.playerNum)
+--    local player = playerObj
+--    if playerObj:getVehicle() ~= nil and not (isDebugEnabled() or (isClient() and (isAdmin() or getAccessLevel() == "moderator"))) then return end
+--    if not (self.context and self.context:isReallyVisible()) then
+--        self.context = ISContextMenu.get(self.playerNum, x + self:getAbsoluteX(), y + self:getAbsoluteY())
+--    end
+--
+--    local recipe = ArmoredVanillaCars.definitions[self.vwVehicleSettings.id].upgradeRecipe
+--    recipe = recipe ~= nil and getScriptManager():getRecipe(recipe)
+--    if recipe ~= nil then
+--        local tool = player:getInventory():getFirstTagEvalRecurse("WeldingMask")
+--        local option = self.context:addOption(getText("Upgrade %1",getText("IGUI_VehicleName" .. self.vehicle:getScript():getName())), player, ArmoredVanillaCars.OnUpgrade,recipe,tool, self) --text
+--        if not tool or not RecipeManager.IsRecipeValid(recipe,playerObj,tool,ISInventoryPaneContextMenu.getContainers(playerObj)) then
+--            --option.notAvailable = true
+--        end
+--    end
+--end
 
-    local recipe = ArmoredVanillaCars.definitions[self.vwVehicleSettings.id].upgradeRecipe
-    recipe = recipe ~= nil and getScriptManager():getRecipe(recipe)
-    if recipe ~= nil then
-        local tool = player:getInventory():getFirstTagEvalRecurse("WeldingMask")
-        local option = self.context:addOption(getText("Upgrade %1",getText("IGUI_VehicleName" .. self.vehicle:getScript():getName())), player, ArmoredVanillaCars.OnUpgrade,recipe,tool, self) --text
-        if not tool or not RecipeManager.IsRecipeValid(recipe,playerObj,tool,ISInventoryPaneContextMenu.getContainers(playerObj)) then
-            --option.notAvailable = true
-        end
-    end
-end
-
---[[
-        ---sort protection parts to relative items
-        ---two tables: vehiclePart unordered categories that contains parts tables / the bodyworklist ordered items
-        ---iterate and remove protection, place after part - what if no part ?
-        ---^ validate defs when generating them
-        ---reverse iterate and move if part found - need move everything again?
-
-        ---get vehicle settings
-
---]]
-function ArmoredVanillaCars.openPanel(window)
-    -- cache table, validate
+function ArmoredVanillaCars.openPanel(settings,window)
     local def = {}
     for i = 1, #window.bodyworklist.items do
         local part = window.bodyworklist.items[i].item.part
@@ -45,7 +33,6 @@ function ArmoredVanillaCars.openPanel(window)
             end
         end
     end
-    --zx.printTableRecursive(def)
 
     local popped = {}
     local index = 0
@@ -82,7 +69,7 @@ function ArmoredVanillaCars.openPanel(window)
     end
 end
 
-function ArmoredVanillaCars.drawArmorItems(def,window,y,item,alt)
+function ArmoredVanillaCars.drawArmorItems(settings,window,y,item,alt)
     if item.item.part ~= nil and item.item.part:getInventoryItem() == nil and item.item.part:getId():find("^Armor_") ~= nil then
         window:drawText(item.item.name, 20, y, 0.4, 0.32, 0.32, 1, UIFont.Small)
 
@@ -107,7 +94,6 @@ function ArmoredVanillaCars.OnUpgradeTest1(player, recipe, item, vehicle)
     --ArmoredVanillaCars.OnUpgradeTest2(player, recipe, item)
 end
 
---[[ ISInventoryPaneContextMenu.OnCraft ]]
 function ArmoredVanillaCars.OnUpgradeTest2(player, recipe, item)
     local containers = ISInventoryPaneContextMenu.getContainers(player)
     local container = item:getContainer()
@@ -161,29 +147,6 @@ function ArmoredVanillaCars.OnUpgradeTest2(player, recipe, item)
 
 end
 
---[[
-moved from patch
-window scales with text, resize on open
-
-        --local y1 = self:titleBarHeight() + 10 + 5 + getTextManager():getFontHeight(UIFont.Medium) + getTextManager():getFontHeight(UIFont.Small) * (5 + 1) + 10 --createChildren
-        --local h = UI.settings.medLineHeight
-        --local x,y,w,h = self.bodyworklist:getX(), y1, self.bodyworklist:getWidth(), h
-        --local x,y,w,h = 10, self:titleBarHeight() + 10 + 5, 280, 20
-
-        --self.zxPanel:setX(x)
-        --self.zxPanel:setY(y)
-        --self.zxPanel:setWidth(w)
-        --self.zxPanel:setHeight(h)
-
-        --self.zxPanel:setVisible(true)
-
-        --self.zxPanel.render = function(self) self:drawTextCentre("Tier 1", self.width/2, 5, 1, 0.1, 0.1, 1, UIFont.Small) end
-        --self.zxPanel.render = function(self) self:drawText("* Tier 1 Vehicle", 10, 0, 1, 0.1, 0.1, 1, UIFont.Medium) end
-
-        --self.listbox:setY(y)
-        --self.bodyworklist:setY(self.vwBodyworklistElement.y + self.vwBodyworklistElement.height)
-
---]]
 function ArmoredVanillaCars.showVehicleTierLevel()
     if not self.vwBodyworklistElement then
         local x,y,w,h = self.bodyworklist:getX(), self.bodyworklist:getY() - (self.vwBodyworklistOffset or 0), self.bodyworklist:getWidth(), UI.settings.fontMediumHeight
@@ -215,33 +178,35 @@ function ArmoredVanillaCars.showVehicleTierLevel()
     end
 end
 
-function ArmoredVanillaCars.onVehicleAction(player, vehicle, part, item, recipe, containers)
-    --ISVehiclePartMenu.transferRequiredItems(player, part, tbl)
-    --ISVehiclePartMenu.equipRequiredItems(player, part, tbl)
-    if not ISVehicleMechanics.cheat then
-        if player:getVehicle() ~= nil then
-            ISVehicleMenu.onExit(player)
-        end
-        ISTimedActionQueue.add(ISPathFindAction:pathToVehicleArea(player, vehicle, part:getArea()))
+function ArmoredVanillaCars.onAddArmor(player, vehicle, part, item, recipe, containers)
+    if ISVehicleMechanics.cheat then
+        ISTimedActionQueue.add(pzVehicleWorkshop.installAction:new(player, vehicle, part, item, recipe, containers))
+    else
+        local pathAction = pzVehicleWorkshop.ActionUtil.pathToPart(player, vehicle, part)
+        pathAction:setOnComplete(function()
+            if RecipeManager.IsRecipeValid(recipe, player, item, containers) then
+                pzVehicleWorkshop.ActionUtil.equipForRecipe(player, recipe, containers)
+                ISTimedActionQueue.add(pzVehicleWorkshop.installAction:new(player, vehicle, part, item, recipe, containers))
+            end
+        end)
     end
 end
 
-function ArmoredVanillaCars.onAddArmor(player, vehicle, part, item, recipe, containers)
-    --print("add armor ",player, part, item, recipe, containers)
-    ArmoredVanillaCars.onVehicleAction(player, vehicle, part, item, recipe, containers)
-    ISTimedActionQueue.add(pzVehicleWorkshop.installAction:new(player, vehicle, part, item, recipe, containers))
-
-    --local result = InventoryItemFactory.CreateItem(recipe:getResult():getFullType())
-    --sendClientCommand(player, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = vehicle:getId(), part = part:getId(), item = result, setModelFromType = true })
-
+function ArmoredVanillaCars.onRemoveArmor(player,vehicle,part,item,recipe,containers)
+    if ISVehicleMechanics.cheat then
+        ISTimedActionQueue.add(pzVehicleWorkshop.uninstallAction:new(player, vehicle, part, item, recipe, containers))
+    else
+        local pathAction = pzVehicleWorkshop.ActionUtil.pathToPart(player, vehicle, part)
+        pathAction:setOnComplete(function()
+            if RecipeManager.IsRecipeValid(recipe, player, item, containers) then
+                pzVehicleWorkshop.ActionUtil.equipForRecipe(player, recipe, containers)
+                ISTimedActionQueue.add(pzVehicleWorkshop.uninstallAction:new(player, vehicle, part, item, recipe, containers))
+            end
+        end)
+    end
 end
 
-function ArmoredVanillaCars.onRemoveArmor(player,vehicle,part)
-    --print("removeArmor ",player,vehicle,part)
-    sendClientCommand(player, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = vehicle:getId(), part = part:getId(), item = false })
-end
-
-function ArmoredVanillaCars.addArmorOptions(def,self,part,x,y)
+function ArmoredVanillaCars.addArmorOptions(settings,self,part,x,y)
     local hasOptions
     local context = self.context
     if part:getInventoryItem() ~= nil then
@@ -254,18 +219,41 @@ function ArmoredVanillaCars.addArmorOptions(def,self,part,x,y)
             for _,recipeName in ipairs(unmount) do
                 local recipe = getScriptManager():getRecipe(recipeName)
                 if recipe ~= nil then
-                    local fullType = recipe:getSource():get(0):getItems():get(0)
-                    local item = playerInv:getFirstType(fullType) or ISVehicleMechanics.cheat and playerInv:AddItem(fullType)
-                    local valid = item and RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
-                    local option = context:addOption(getText("IGUI_Uninstall") .. " " .. partText, player, ArmoredVanillaCars.onRemoveArmor, self.vehicle, part, containers) --text
+                    --local fullType = recipe:getSource():get(0):getItems():get(0)
+                    --local item = playerInv:getFirstType(fullType) or ISVehicleMechanics.cheat and playerInv:AddItem(fullType)
+                    --local valid = item and RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
+                    --local option = context:addOption(getText("IGUI_Uninstall") .. " " .. partText, player, ArmoredVanillaCars.onRemoveArmor, self.vehicle, part, containers) --text
+                    --if not valid then
+                    --    option.notAvailable = true
+                    --end
+
+                    local keyInv = InventoryItemFactory.CreateItem("KeyRing"):getInventory()
+                    containers:add(keyInv)
+                    local item = keyInv:AddItem("CarKey")
+                    item:getModData().vehicleObj = self.vehicle
+                    item:getModData().unmountCarPart = part
+                    local valid = RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
+
+                    local option = context:addOption(getText("IGUI_Uninstall") .. " " .. partText, player, ArmoredVanillaCars.onRemoveArmor, self.vehicle, part, item, recipe, containers) --text
                     if not valid then
                         option.notAvailable = true
                     end
+                    local tooltip = ISRecipeTooltip.addToolTip()
+                    tooltip.character = player
+                    tooltip.recipe = recipe
+                    tooltip:setName(recipe:getName())
+                    --if resultItem:getTexture() and resultItem:getTexture():getName() ~= "Question_On" then
+                    --    tooltip:setTexture(resultItem:getTexture():getName())
+                    --end
+                    option.toolTip = tooltip
+
+
                 else
-                    local option = context:addOption(getText("Recipe %1 not found ", recipeName)) --text
+                    local option = context:addOption(getText("Recipe %1 not found ",recipeName))
                     option.notAvailable = true
                 end
             end
+
             hasOptions = true
         end
     else
@@ -286,7 +274,9 @@ function ArmoredVanillaCars.addArmorOptions(def,self,part,x,y)
                     --local fullType = "Base.CarKey"
                     --local item = self.vehicle:createKey()
                     --local item = InventoryItemFactory.CreateItem("CarKey")
-                    local item = InventoryItemFactory.CreateItem("KeyRing"):getInventory():AddItem("CarKey")
+                    local keyInv = InventoryItemFactory.CreateItem("KeyRing"):getInventory()
+                    containers:add(keyInv)
+                    local item = keyInv:AddItem("CarKey")
                     item:getModData().vehicleObj = self.vehicle
                     local valid = RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
 
@@ -304,7 +294,7 @@ function ArmoredVanillaCars.addArmorOptions(def,self,part,x,y)
                     option.toolTip = tooltip
 
                 else
-                    local option = context:addOption(getText("Recipe %1 for %2 not found ", recipeName, partText))
+                    local option = context:addOption(getText("Recipe %1 not found ", recipeName))
                     option.notAvailable = true
                 end
             end
@@ -315,23 +305,20 @@ function ArmoredVanillaCars.addArmorOptions(def,self,part,x,y)
     if hasOptions then self.context:setVisible(true) end
 end
 
-if getPlayer() and not addDebugDefinitions then return end
+do
+    local VehicleSettings = pzVehicleWorkshop.VehicleSettings
 
---[[ CarStationWagon ]]
-local UI = require "pzVehicleWorkshop/UI_patches"
---local ArmoredVanillaCars = require "pzVehicleWorkshop/ArmoredVanillaCars.lua"
+    for mod, base in pairs(pzVehicleWorkshop.ArmoredVanillaVehicles.armorVehicles ) do
+        VehicleSettings.add{
+            id = mod,
+            VehicleMechanics_OnOpen = ArmoredVanillaCars.openPanel,
+            VehicleMechanics_DrawItems = ArmoredVanillaCars.drawArmorItems,
+            VehicleMechanics_PartContext = ArmoredVanillaCars.addArmorOptions,
+        }
+    end
+end
 
-local scriptName = "AVC.CarStationWagonTiered"
-pzVehicleWorkshop.UI.add{
-    vehicle = scriptName,
-    VehicleMechanics = {
-        openPanel = ArmoredVanillaCars.openPanel,
-        customDrawItems = ArmoredVanillaCars.drawArmorItems,
-    }
-}
-
-pzVehicleWorkshop.add(scriptName,nil,{ partContext = ArmoredVanillaCars.addArmorOptions})
-
+--[[
 --for _,scriptName in ipairs({"Base.CarStationWagon","Base.CarStationWagon2"}) do
 --    ArmoredVanillaCars.definitions[scriptName] = {
 --        upgradeRecipe = "AVC.UpgradeVehicleType1",
@@ -344,5 +331,6 @@ pzVehicleWorkshop.add(scriptName,nil,{ partContext = ArmoredVanillaCars.addArmor
 --        }
 --    }
 --end
+--]]
 
-return ArmoredVanillaCars
+pzVehicleWorkshop.ArmoredVanillaCars = ArmoredVanillaCars

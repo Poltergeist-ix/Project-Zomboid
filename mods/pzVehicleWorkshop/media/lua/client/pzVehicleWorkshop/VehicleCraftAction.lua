@@ -88,29 +88,33 @@ do
             self.character:stopOrTriggerSound(self.craftSound)
         end
         if ISVehicleMechanics.cheat then
-            self.resultItem = InventoryItemFactory.CreateItem(self.recipe:getResult():getFullType())
+            if not self.recipe:isRemoveResultItem() then
+                self.resultItem = InventoryItemFactory.CreateItem(self.recipe:getResult():getFullType())
+            end
         else
             self.resultItem = RecipeManager.PerformMakeItem(self.recipe, self.item, self.character, self.containers)
         end
 
-        if self.resultItem ~= nil then
-            self:addOrDropResult(self.containers ~= nil)
-        end
+        self:onPerform()
 
         --self.container:setDrawDirty(true)
         ISInventoryPage.dirtyUI()
-
-        if self.onPerform then self:onPerform() end
 
         -- needed to remove from queue / start next.
         ISBaseTimedAction.perform(self)
     end
 
+    function Action:onPerform()
+        self:addOrDropResult(self.containers~=nil)
+    end
+
     function Action:addOrDropResult(toFloor)
+        if self.resultItem == nil then return end
         if not toFloor then
             local inv = self.character:getInventory()
             if inv:getCapacityWeight() + self.resultItem:getWeight() < inv:getEffectiveCapacity(self.character) then
-                return inv:AddItem(self.resultItem)
+                inv:AddItem(self.resultItem)
+                return
             end
         end
         if instanceof(self.resultItem, "Moveable") and not self.resultItem:CanBeDroppedOnFloor() then
@@ -136,7 +140,7 @@ do
     --end
 
     function Action:onPerform()
-        sendClientCommand(self.character, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = self.vehicle:getId(), part = self.part:getId(), item = self.resultItem, setModelFromType = true })
+        sendClientCommand(self.character, 'pzVehicleWorkshop', 'setPartItem',  { vehicle = self.vehicle:getId(), part = self.part:getId(), item = self.resultItem, setModelFromType = true })
     end
 
     pzVehicleWorkshop.installAction = Action
@@ -156,36 +160,8 @@ do
     --end
 
     function Action:onPerform()
-        sendClientCommand(self.character, 'pzVehicleWorkshop', 'setItemPart',  { vehicle = self.vehicle:getId(), part = self.part:getId(), item = false })
+        sendClientCommand(self.character, 'pzVehicleWorkshop', 'setPartItem',  { vehicle = self.vehicle:getId(), part = self.part:getId(), item = false })
     end
 
     pzVehicleWorkshop.uninstallAction = Action
 end
-
---[[
-blowtorch
-
-ISMoveablesAction:start
-    elseif self.character:hasEquipped("BlowTorch") then
-        self:setActionAnim(isFloor and "BlowTorchFloor" or "BlowTorch")
-        self:setOverrideHandModels(self.character:getPrimaryHandItem(), nil)
-
-ISBuildingObject:tryBuild
-if self.equipBothHandItem then
-    if luautils.haveToBeTransfered(playerObj, self.equipBothHandItem) then
-        ISTimedActionQueue.add(ISInventoryTransferAction:new(playerObj, self.equipBothHandItem, self.equipBothHandItem:getContainer(), playerInv));
-    end
-    ISInventoryPaneContextMenu.equipWeapon(self.equipBothHandItem, true, true, self.player)
-end
-...
-
-ISRemoveBurntVehicle:update
-	self:setActionAnim("BlowTorch")
-	self:setOverrideHandModels(self.item, nil)
-	self.sound = self.character:playSound("BlowTorch")
-
-
-
-
-
---]]

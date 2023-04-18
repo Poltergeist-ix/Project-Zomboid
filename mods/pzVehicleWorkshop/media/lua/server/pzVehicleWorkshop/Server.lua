@@ -4,31 +4,25 @@ local pzVehicleWorkshop = pzVehicleWorkshop
 
 local Server = {}
 
-function Server.changeVehicleScript(vehicle,scriptName,skinIndex)
-    vehicle:setScriptName(scriptName)
-    vehicle:scriptReloaded()
-    if skinIndex then vehicle:setSkinIndex(skinIndex) end
-end
-
+-- not called for client
 function Server.patchCreateEngine(CreateEngine)
     return function(vehicle,...)
-        pzVehicleWorkshop.call("createEngine",vehicle:getScriptName(),vehicle,...)
-        --local scriptName = vehicle:getScriptName()
-        --local opt = modTable.vehicleSettings[scriptName]
-        --if opt.createEngine ~= nil then
-        --    opt:createEngine(vehicle, part)
-        --end
+        pzVehicleWorkshop.VehicleSettings.call("createEngine",vehicle:getScriptName(),vehicle,...)
 
         return CreateEngine(vehicle,...)
     end
 end
 
---[[ serverCommands ]]
-function pzVehicleWorkshop.serverCommands.setItemPart(player,args) --"install"
+--- Server Commands
+
+pzVehicleWorkshop.serverCommands = pzVehicleWorkshop.serverCommands or {}
+
+function pzVehicleWorkshop.serverCommands.setPartItem(player,args)
     local vehicle = getVehicleById(args.vehicle)
     if vehicle == nil then return end
     local part = vehicle:getPartById(args.part)
     if part == nil then return end
+
     if args.item == false then
         part:setInventoryItem(nil)
         part:setAllModelsVisible(false)
@@ -37,9 +31,8 @@ function pzVehicleWorkshop.serverCommands.setItemPart(player,args) --"install"
         if args.setModelFromType then
             part:setModelVisible(args.item:getFullType(),true)
         end
-    --else
-    --    return
     end
+    vehicle:transmitPartItem(part)
 end
 
 function Server.OnClientCommand(module, command, player, args)
@@ -48,7 +41,7 @@ function Server.OnClientCommand(module, command, player, args)
         if type(f) == "function" then
             return f(player,args)
         else
-            print("Debug: received invalid command ",command)
+            print("pzVehicleWorkshop: received invalid command ",command)
         end
     end
 end
