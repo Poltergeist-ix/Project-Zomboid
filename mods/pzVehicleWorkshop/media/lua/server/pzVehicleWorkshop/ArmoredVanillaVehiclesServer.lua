@@ -3,15 +3,19 @@ if isClient() then return end
 local avv = {}
 
 function avv.createEngine(self,vehicle,part)
+    --vehicle:removeFromWorld()
     local ticks = 0
     local function doOnce()
-        ticks = ticks + 1
-        if ticks > 5 then
+        if ticks <= 0  then
             Events.OnTick.Remove(doOnce)
             local script = self.replaceTypes and self.replaceTypes[1]
             local skinIndex = vehicle:getSkinIndex()
-            print("create Engine, ",vehicle,script,skinIndex)
-            pzVehicleWorkshop.VehicleUtilities.changeVehicleScript(vehicle,script,skinIndex)
+            --print("create Engine, ",vehicle,script,skinIndex)
+            vehicle:setScript(script)
+            --pzVehicleWorkshop.VehicleUtilities.changeVehicleScript(vehicle,script,skinIndex)
+            --vehicle:addToWorld()
+        else
+            ticks = ticks - 1
         end
     end
     Events.OnTick.Add(doOnce)

@@ -1,5 +1,5 @@
 local pzVehicleWorkshop = pzVehicleWorkshop
-local ArmoredVanillaCars = pzVehicleWorkshop.ArmoredVanillaCars or {}
+local ArmoredVanillaVehicles = pzVehicleWorkshop.ArmoredVanillaVehicles or {}
 
 --function ArmoredVanillaCars.addUpgradeOptions(self,x,y)
 --    if isGamePaused() then return end
@@ -21,55 +21,34 @@ local ArmoredVanillaCars = pzVehicleWorkshop.ArmoredVanillaCars or {}
 --    end
 --end
 
-function ArmoredVanillaCars.openPanel(settings,window)
-    local def = {}
-    for i = 1, #window.bodyworklist.items do
-        local part = window.bodyworklist.items[i].item.part
-        if part ~= nil then
-            local partId = part:getId()
-            local sub, n = partId:gsub("^Armor_","")
-            if n == 1 then
-                def[partId] = sub
-            end
-        end
-    end
+function ArmoredVanillaVehicles.openPanel(settings, window)
+    local def = settings.partParents or ArmoredVanillaVehicles.generatePartParents(settings,window.vehicle)
 
-    local popped = {}
     local index = 0
-    for i, item in ipairs(window.bodyworklist.items) do
-        local part = item.item.part
-        local id = part and part:getId()
-
-        if def[id] then
-            popped[def[id]] = item
-        else
-            index = index + 1
-            item.itemindex = index
-            window.bodyworklist.items[index] = item
-            if popped[id] then
-                index = index + 1
-                popped[id].itemindex = index
-                window.bodyworklist.items[index] = popped[id]
-                popped[id] = nil
-            end
-        end
-    end
-    if not table.isempty(popped) then
-        print("AVC Warning: bad parts")
-        local cat = {name="Misc Armor",cat=true}
-        local item = window.bodyworklist:addItem(cat.name,cat)
+    for i, item in ipairs(copyTable(window.bodyworklist.items)) do
         index = index + 1
+
+        local part = item.item.part
+        local partId = part and part:getId()
+
         item.itemindex = index
         window.bodyworklist.items[index] = item
-        for i,v in pairs(popped) do
+
+        if def[partId] then
             index = index + 1
-            v.itemindex = index
-            window.bodyworklist.items[index] = v
+            local prPart = window.vehicle:getPartById(def[partId])
+            local newPart = {
+                name = getText("IGUI_VehiclePart" .. prPart:getId()),
+                part = prPart
+            }
+            local item = window.bodyworklist:addItem(newPart.name,newPart)
+            item.itemindex = index
+            window.bodyworklist.items[index] = item
         end
     end
 end
 
-function ArmoredVanillaCars.drawArmorItems(settings,window,y,item,alt)
+function ArmoredVanillaVehicles.drawArmorItems(settings, window, y, item, alt)
     if item.item.part ~= nil and item.item.part:getInventoryItem() == nil and item.item.part:getId():find("^Armor_") ~= nil then
         window:drawText(item.item.name, 20, y, 0.4, 0.32, 0.32, 1, UIFont.Small)
 
@@ -77,14 +56,14 @@ function ArmoredVanillaCars.drawArmorItems(settings,window,y,item,alt)
     end
 end
 
-function ArmoredVanillaCars.OnUpgrade(player, recipe, item, ui)
+function ArmoredVanillaVehicles.OnUpgrade(player, recipe, item, ui)
 
-    ArmoredVanillaCars.OnUpgradeTest1(player, recipe, item, ui.vehicle)
+    ArmoredVanillaVehicles.OnUpgradeTest1(player, recipe, item, ui.vehicle)
     --ArmoredVanillaCars.OnUpgradeTest2(player, recipe, item)
     ui:initParts()
 end
 
-function ArmoredVanillaCars.OnUpgradeTest1(player, recipe, item, vehicle)
+function ArmoredVanillaVehicles.OnUpgradeTest1(player, recipe, item, vehicle)
     local scriptName = "AVC.CarStationWagonTiered"
     local skinIndex = vehicle:getSkinIndex()
     --vehicle:setScript(scriptName)
@@ -94,7 +73,7 @@ function ArmoredVanillaCars.OnUpgradeTest1(player, recipe, item, vehicle)
     --ArmoredVanillaCars.OnUpgradeTest2(player, recipe, item)
 end
 
-function ArmoredVanillaCars.OnUpgradeTest2(player, recipe, item)
+function ArmoredVanillaVehicles.OnUpgradeTest2(player, recipe, item)
     local containers = ISInventoryPaneContextMenu.getContainers(player)
     local container = item:getContainer()
     local selectedItemContainer = item:getContainer()
@@ -147,7 +126,7 @@ function ArmoredVanillaCars.OnUpgradeTest2(player, recipe, item)
 
 end
 
-function ArmoredVanillaCars.showVehicleTierLevel()
+function ArmoredVanillaVehicles.showVehicleTierLevel()
     if not self.vwBodyworklistElement then
         local x,y,w,h = self.bodyworklist:getX(), self.bodyworklist:getY() - (self.vwBodyworklistOffset or 0), self.bodyworklist:getWidth(), UI.settings.fontMediumHeight
         function returnFalse() return false end
@@ -178,7 +157,7 @@ function ArmoredVanillaCars.showVehicleTierLevel()
     end
 end
 
-function ArmoredVanillaCars.onAddArmor(player, vehicle, part, item, recipe, containers)
+function ArmoredVanillaVehicles.onAddArmor(player, vehicle, part, item, recipe, containers)
     if ISVehicleMechanics.cheat then
         ISTimedActionQueue.add(pzVehicleWorkshop.installAction:new(player, vehicle, part, item, recipe, containers))
     else
@@ -192,7 +171,7 @@ function ArmoredVanillaCars.onAddArmor(player, vehicle, part, item, recipe, cont
     end
 end
 
-function ArmoredVanillaCars.onRemoveArmor(player,vehicle,part,item,recipe,containers)
+function ArmoredVanillaVehicles.onRemoveArmor(player, vehicle, part, item, recipe, containers)
     if ISVehicleMechanics.cheat then
         ISTimedActionQueue.add(pzVehicleWorkshop.uninstallAction:new(player, vehicle, part, item, recipe, containers))
     else
@@ -206,7 +185,7 @@ function ArmoredVanillaCars.onRemoveArmor(player,vehicle,part,item,recipe,contai
     end
 end
 
-function ArmoredVanillaCars.addArmorOptions(settings,self,part,x,y)
+function ArmoredVanillaVehicles.addArmorOptions(settings, self, part, x, y)
     local hasOptions
     local context = self.context
     if part:getInventoryItem() ~= nil then
@@ -234,7 +213,7 @@ function ArmoredVanillaCars.addArmorOptions(settings,self,part,x,y)
                     item:getModData().unmountCarPart = part
                     local valid = RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
 
-                    local option = context:addOption(getText("IGUI_Uninstall") .. " " .. partText, player, ArmoredVanillaCars.onRemoveArmor, self.vehicle, part, item, recipe, containers) --text
+                    local option = context:addOption(getText("IGUI_Uninstall") .. " " .. partText, player, ArmoredVanillaVehicles.onRemoveArmor, self.vehicle, part, item, recipe, containers) --text
                     if not valid then
                         option.notAvailable = true
                     end
@@ -280,7 +259,7 @@ function ArmoredVanillaCars.addArmorOptions(settings,self,part,x,y)
                     item:getModData().vehicleObj = self.vehicle
                     local valid = RecipeManager.IsRecipeValid(recipe, player, item, containers) or ISVehicleMechanics.cheat
 
-                    local option = context:addOption(getText("IGUI_Install") .. " " .. partText, player, ArmoredVanillaCars.onAddArmor, self.vehicle, part, item, recipe, containers) --text
+                    local option = context:addOption(getText("IGUI_Install") .. " " .. partText, player, ArmoredVanillaVehicles.onAddArmor, self.vehicle, part, item, recipe, containers) --text
                     if not valid then
                         option.notAvailable = true
                     end
@@ -311,9 +290,9 @@ do
     for mod, base in pairs(pzVehicleWorkshop.ArmoredVanillaVehicles.armorVehicles ) do
         VehicleSettings.add{
             id = mod,
-            VehicleMechanics_OnOpen = ArmoredVanillaCars.openPanel,
-            VehicleMechanics_DrawItems = ArmoredVanillaCars.drawArmorItems,
-            VehicleMechanics_PartContext = ArmoredVanillaCars.addArmorOptions,
+            VehicleMechanics_OnOpen = ArmoredVanillaVehicles.openPanel,
+            VehicleMechanics_DrawItems = ArmoredVanillaVehicles.drawArmorItems,
+            VehicleMechanics_PartContext = ArmoredVanillaVehicles.addArmorOptions,
         }
     end
 end
@@ -333,4 +312,4 @@ end
 --end
 --]]
 
-pzVehicleWorkshop.ArmoredVanillaCars = ArmoredVanillaCars
+pzVehicleWorkshop.ArmoredVanillaVehicles = ArmoredVanillaVehicles
