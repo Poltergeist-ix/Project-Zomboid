@@ -4,15 +4,6 @@ local pzVehicleWorkshop = pzVehicleWorkshop
 
 local Server = {}
 
--- not called for client
-function Server.patchCreateEngine(CreateEngine)
-    return function(vehicle,...)
-        pzVehicleWorkshop.VehicleSettings.call("createEngine",vehicle:getScriptName(),vehicle,...)
-
-        return CreateEngine(vehicle,...)
-    end
-end
-
 --- Server Commands
 
 pzVehicleWorkshop.serverCommands = pzVehicleWorkshop.serverCommands or {}

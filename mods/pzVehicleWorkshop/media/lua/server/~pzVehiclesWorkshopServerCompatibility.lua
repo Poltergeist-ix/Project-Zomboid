@@ -1,6 +1,7 @@
-if isClient() then return end
+--if isClient() then return end
 
-require "pzVehicleWorkshop/Server"
+local Patches = require "pzVehicleWorkshop/OnServerPatches"
 
 require "Vehicles/Vehicles"
-Vehicles.Create.Engine = pzVehicleWorkshop.Server.patchCreateEngine(Vehicles.Create.Engine)
+Vehicles.Create.Engine = Patches.patchCreateEngine(Vehicles.Create.Engine)
+Vehicles.UninstallTest.Default = Patches.patchCreateEngine(Vehicles.UninstallTest.Default)
