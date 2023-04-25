@@ -197,8 +197,7 @@ function Paint.OnGameStart()
     function Cursor:canPaint(object)
         return ISPaintCursor.canPaint(self,object) and (not self.needFullWall or not Paint.partialWalls[object:getTextureName()])
     end
-
-
+    
     function Cursor:create(x, y, z, north, sprite)
         local playerObj = self.character
         local playerInv = playerObj:getInventory()
