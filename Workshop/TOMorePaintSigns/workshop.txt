@@ -1,0 +1,15 @@
+version=1
+id=2966846210
+title=Paint Signs | Wall Patterns
+description=This mods adds more patterns for painting the walls and can be easily expanded to add more options.
+description=
+description=[h1]Compatibility[/h1]
+description=Tread's Paint Symbols [41.66+]: tested, no issues found.
+description=
+description=[quote=author] [b]Poltergeist[/b] and [b]Glytch3r[/b]
+description=Commissioned by [b]RavenousEye[/b] [/quote]
+description=
+description=[h1]Hire Team Orbit for Custom Mod Commission[/h1]
+description=[url=https://discord.gg/2skchrKrDv][img]https://i.imgur.com/YztLFAo.gif[/img][/url]
+tags=Build 41;Building;Multiplayer;Textures
+visibility=unlisted

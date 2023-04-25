@@ -1,0 +1,4 @@
+--
+UI_optionscreen_binding_radial = "Item Conversion Radial"
+UI_optionscreen_ModOptions_radialKeyDelay = "MIC Radial Key Delay"
+UI_optionscreen_ModOptions_radialKeyDelay_tooltip = "time in ms to open the radial"

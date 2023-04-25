@@ -1,0 +1,33 @@
+module Base
+{
+
+	model PreppedFish_Ground
+	{
+		mesh = Worlditems/PreppedFish,
+		texture = Worlditems/PreppedFish,
+		scale = 0.0045,
+	}
+
+	model DriedFish_Ground
+	{
+		mesh = Worlditems/PreppedFish,
+		texture = Worlditems/DriedFish,
+		scale = 0.0045,
+	}
+	/***********HAND MODELS***********/
+
+	model H_PreppedFish
+	{
+		mesh = Worlditems/H_PreppedFish,
+		texture = Worlditems/PreppedFish,
+		scale = 0.0045,
+	}
+
+	model H_DriedFish
+	{
+		mesh = Worlditems/H_PreppedFish,
+		texture = Worlditems/DriedFish,
+		scale = 0.0045,
+	}
+
+}

@@ -1,0 +1,7 @@
+Recipes_EN {
+    Recipe_Prepare_Dry_Fish = "Process Fish",
+    Recipe_Make_Drier_1 = "Craft Drying Net",
+    Recipe_Make_Drier_9 = "Craft Drying Net",
+    Recipe_Make_Drier_8 = "Craft Drying Rack",
+    Recipe_Make_Drier_15 = "Craft Drying Skewer",
+}

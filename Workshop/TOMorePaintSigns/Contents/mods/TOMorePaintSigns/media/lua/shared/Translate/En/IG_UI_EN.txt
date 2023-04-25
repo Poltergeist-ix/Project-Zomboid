@@ -1,0 +1,5 @@
+IGUI_EN = {
+    IGUI_TOMorePaintOptions_patA = "Group A",
+    IGUI_TOMorePaintOptions_patB = "Group B",
+    --IGUI_TOMorePaintOptions_patB_0 = "option 1",
+}

@@ -1,0 +1,13 @@
+version=1
+id=2897072401
+title=M's Buckets
+description=This mod adds more functions to buckets. You can put dirt in it, use it to defend your crops or just put things in it.
+description=Convert your buckets with a right click in inventory, vanilla to multipurpose bucket, multipurpose bucket to container or weapon bucket, same conversion works in reverse.
+description=
+description=Multipurpose bucket: can hold water, gas and be used to collect dirt from ground.
+description=Container Bucket: can be used as container to carry items around.
+description=Weapon Bucket, short blunt, stats mix between saucepan, shovel, lead pipe.
+description=
+description=[h1] Warning this mod is still under development and script values can change after update. I try to make it easy to add more item conversions.[/h1]
+tags=Build 41;Items;Misc;Realistic;Weapons
+visibility=public

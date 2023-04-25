@@ -1,0 +1,12 @@
+id=DryFishMod
+name=Dried Fish Mod
+description=This Mod is Commissioned to TeamOrbit. You are not allowed to put this on your modpack
+poster=poster.png
+authors=TeamOrbit
+icon=icon.png
+tiledef=DryFishMod 2699
+pack=DryFishMod
+tags=Build 41,Balance,Building,Clothing/Armor,Food,Misc,Models,Multiplayer,Pop Culture,Realistic,Silly/Fun,Textures
+versionMin=41.0
+
+

@@ -1,0 +1,8 @@
+id=TOMorePaintSigns
+name=Paint Signs Wall Patterns
+description=This Mod is Commissioned to TeamOrbit. You are not allowed to put this on your modpack
+poster=poster.png
+icon=icon.png
+versionMin=41.78
+pack=topaintsigns
+tiledef=topaintsigns 2698

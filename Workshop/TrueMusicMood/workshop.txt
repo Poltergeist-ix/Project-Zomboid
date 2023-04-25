@@ -1,0 +1,15 @@
+version=1
+id=2954996592
+title=True Music improves mood
+description=[h1]Description[/h1]
+description=Players who are listening to music will improve their mod!
+description=Music lowers stress, boredom and unhapiness.
+description=
+description=[quote=Poltergeist]
+description=Commissioned by [b]MercDragon[/b]
+description=
+description=[h1]Hire Team Orbit for Custom Mod Commission[/h1]
+description=[url=https://discord.gg/2skchrKrDv][img]https://imgur.com/14db9BL.gif[/img][/url]
+description=[/quote]
+tags=Build 41;Misc;Multiplayer;Silly/Fun
+visibility=unlisted

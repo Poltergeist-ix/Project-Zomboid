@@ -1,0 +1,43 @@
+VERSION = 1,
+
+option WorldOnFire.RBBurnt
+{
+	type = enum,
+	numValues = 6,
+	default = 2,
+	page = WorldOnFire,
+	translation = WorldOnFire_RBBurnt,
+	valueTranslation = SurvivorHouseChance,
+}
+option WorldOnFire.BurnRoomChance
+{
+	type = integer,
+	min = 0,
+	max = 100,
+	default = 5,
+	page = WorldOnFire,
+	translation = WorldOnFire_BurnRoomChance,
+}
+option WorldOnFire.AnyRoom
+{
+	type = boolean,
+	default = false,
+	page = WorldOnFire,
+	translation = WorldOnFire_AnyRoom,
+}
+option WorldOnFire.ZombieInvenoryHazard
+{
+	type = integer,
+	min = 0,
+	max = 100,
+	default = 1,
+	page = WorldOnFire,
+	translation = WorldOnFire_ZombieInvenoryHazard,
+}
+option WorldOnFire.ThunderHazard
+{
+	type = boolean,
+	default = false,
+	page = WorldOnFire,
+	translation = WorldOnFire_ThunderHazard,
+}

@@ -1,0 +1,4 @@
+ItemName_EN = {
+    ItemName_DFM.PreppedFish = "Processed Fish",
+    ItemName_DFM.DryFish = "Dry Fish",
+}

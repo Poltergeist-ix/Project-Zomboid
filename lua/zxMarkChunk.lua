@@ -15,33 +15,28 @@ function zxMarkChunk:createChildren()
     local lineHeight = getTextManager():getFontHeight(self.font) + 7
     local pad = 5
     local x1 = self.textWidth + pad * 2
+    local y1 = pad+lineHeight
     local x2 = x1 + self.boxWidth + pad
+    local y2 = y1+lineHeight
 
-    self.xOffset = ISTextEntryBox:new("",x1,pad+lineHeight,self.boxWidth,0)
-    self.xOffset:initialise()
-    self.xOffset:instantiate()
-    self.xOffset:setOnlyNumbers(true)
-    self:addChild(self.xOffset)
+    local function onCommandEntered(self)
+        return self.parent:OnMarkChunk()
+    end
+    local function addEntryBox(self,id,x,y)
+        local newBox = ISTextEntryBox:new("",x,y,self.boxWidth,0)
+        newBox:initialise()
+        newBox:instantiate()
+        newBox:setOnlyNumbers(true)
+        newBox.onCommandEntered = onCommandEntered
+        self[id] = newBox
+        self:addChild(newBox)
+    end
+    addEntryBox(self,"xOffset",x1,y1)
+    addEntryBox(self,"yOffset",x2,y1)
+    addEntryBox(self,"xInput",x1,y2)
+    addEntryBox(self,"yInput",x2,y2)
 
-    self.yOffset = ISTextEntryBox:new("",x2,pad+lineHeight,self.boxWidth,0)
-    self.yOffset:initialise()
-    self.yOffset:instantiate()
-    self.yOffset:setOnlyNumbers(true)
-    self:addChild(self.yOffset)
-
-    self.xInput = ISTextEntryBox:new("",x1,pad+lineHeight*2,self.boxWidth,0)
-    self.xInput:initialise()
-    self.xInput:instantiate()
-    self.xInput:setOnlyNumbers(true)
-    self:addChild(self.xInput)
-
-    self.yInput = ISTextEntryBox:new("",x2,pad+lineHeight*2,self.boxWidth,0)
-    self.yInput:initialise()
-    self.yInput:instantiate()
-    self.yInput:setOnlyNumbers(true)
-    self:addChild(self.yInput)
-
-    self.markButton = ISButton:new(pad, pad+lineHeight*3, self.width-2*pad, lineHeight, "Mark Chunk", self, self.OnMarkChunk)
+    self.markButton = ISButton:new(pad, y2+lineHeight, self.width-2*pad, lineHeight, "Mark Chunk", self, self.OnMarkChunk)
     self:addChild(self.markButton)
 end
 
@@ -227,4 +222,3 @@ local function OnKeyPressed(key)
 end
 
 Events.OnKeyPressed.Add(OnKeyPressed)
-

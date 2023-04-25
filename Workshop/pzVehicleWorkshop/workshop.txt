@@ -1,0 +1,12 @@
+version=1
+id=2964179034
+title=Vehicle Workshop
+description=List of Vehicle Mods that require this.
+description=
+description=[url=https://steamcommunity.com/sharedfiles/filedetails/?id=2964213735][img]https://steamuserimages-a.akamaihd.net/ugc/2026099010639229650/9D1581BB6FAD473FD83122B51B59DEF503046F01/[/img][/url]
+description=[code]
+description=Workshop ID: 2964179034
+description=Mod ID: pzVehicleWorkshop
+description=[/code]
+tags=Build 41;Framework;Multiplayer;Vehicles
+visibility=unlisted

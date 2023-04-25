@@ -1,0 +1,6 @@
+--Recipe_
+Recipe_BucketNewToVanilla = "Use as: regular Item"
+Recipe_BucketVanillaToNew = "Use as: converted Item"
+Recipe_BucketConvertToBase = "Use as: converted Item"
+Recipe_BucketConvertToWeapon = "Use as: weapon"
+Recipe_BucketConvertToContainer = "Use as: container"

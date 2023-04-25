@@ -1,0 +1,9 @@
+Sandbox_PTBR = {
+	Sandbox_DryFishMod = "Dried Fish Mod (Peixe Desidratado/Seco)",
+	Sandbox_DryFishMod_normalDryingMod = "Velocidade de Secagem",
+	Sandbox_DryFishMod_normalDryingMod_tooltip = "Velocidade com que o peixe preparado secará normalmente",
+	Sandbox_DryFishMod_campfireDryingMod = "Velocidade de Secagem: fogueira",
+	Sandbox_DryFishMod_campfireDryingMod_tooltip = "Velocidade com que o peixe preparado secará sobre uma fogueira acesa",
+	Sandbox_DryFishMod_poisonChance = "Risco de Envenenamento",
+	Sandbox_DryFishMod_poisonChance_tooltip = "Chance de o peixe estragar quando seca sem fogo",
+}

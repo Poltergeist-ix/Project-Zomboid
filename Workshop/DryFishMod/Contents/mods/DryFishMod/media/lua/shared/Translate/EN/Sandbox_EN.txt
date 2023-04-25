@@ -1,0 +1,9 @@
+Sandbox_EN = {
+	Sandbox_DryFishMod = "Dried Fish Mod",
+	Sandbox_DryFishMod_normalDryingMod = "Drying Speed",
+	Sandbox_DryFishMod_normalDryingMod_tooltip = "Speed at which the prepared fish will dry normally",
+	Sandbox_DryFishMod_campfireDryingMod = "Drying Speed: campfire",
+	Sandbox_DryFishMod_campfireDryingMod_tooltip = "Speed at which the prepared fish will dry over campfire with fire",
+	Sandbox_DryFishMod_poisonChance = "Poison danger",
+	Sandbox_DryFishMod_poisonChance_tooltip = "Chance the fish can spoil when drying without fire",
+}

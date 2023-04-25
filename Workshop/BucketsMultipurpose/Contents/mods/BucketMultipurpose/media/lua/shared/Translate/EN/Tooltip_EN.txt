@@ -1,0 +1,4 @@
+-- // Formatting tips // textArg = "Language Text" // 1st line is skipped // lines that have -- are skipped // lines that end with .. are skipped // ..
+Tooltip_item_BucketTypeEmpty = "Multipurpose bucket that can store water, gas, dirt"
+Tooltip_item_BucketTypeWeapon = "Fear the Bucket weapon!"
+Tooltip_item_BucketTypeContainer = "This Bucket can be used to hold items"

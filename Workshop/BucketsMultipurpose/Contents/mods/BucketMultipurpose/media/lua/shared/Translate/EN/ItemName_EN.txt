@@ -1,0 +1,9 @@
+--ItemName_
+ItemName_Base.BucketTypeEmpty = "Empty Bucket"
+ItemName_Base.BucketTypeWeapon = "Bucket (Weapon)"
+ItemName_Base.BucketTypeContainer = "Bucket (Container)"
+ItemName_Base.BucketTypePetrolContainer = "Bucket of Gasoline"
+ItemName_Base.BucketTypeDirtContainer = "Bucket with Dirt"
+ItemName_Base.BucketTypeGravelContainer = "Bucket with Gravel"
+ItemName_Base.BucketTypeSandContainer = "Bucket with Sand"
+ItemName_Base.BucketTypeFertilizerContainer = "Bucket with fertilizer"

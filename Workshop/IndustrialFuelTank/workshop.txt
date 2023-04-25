@@ -1,0 +1,22 @@
+version=1
+id=2964456536
+title=Industrial Fuel Tank
+description=[quote][h1] Warning this mod is under development and might require a save wipe to work properly after the following updates. [/h1][/quote]
+description=
+description=Did you ever want to store fuel in a big industry container? Now you can!
+description=[list]
+description=[*] Container can work as a Fuel Pump.
+description=[*] Adds action to fill it with fuel from items.
+description=[*] Warning: containers are vulnerable to damage. (requires the mod to be enabled when the map is first loaded)
+description=[/list]
+description=
+description=[quote=Poltergeist]Commissioned by [b]macinsight[/b] [/quote]
+description=
+description=[h1]Hire Team Orbit for Custom Mod Commission[/h1]
+description=[url=https://discord.gg/2skchrKrDv][img]https://i.imgur.com/YztLFAo.gif[/img][/url]
+description=[code]
+description=Workshop ID: 2964456536
+description=Mod ID: IndustrialFuelTank
+description=[/code]
+tags=Build 41;Building;Multiplayer
+visibility=public

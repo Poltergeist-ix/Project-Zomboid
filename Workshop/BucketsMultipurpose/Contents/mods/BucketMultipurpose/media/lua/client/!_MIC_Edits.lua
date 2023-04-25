@@ -1,0 +1,2 @@
+require "BuildingObjects/ISUI/ISInventoryBuildMenu"
+Events.OnFillWorldObjectContextMenu.Remove(ISInventoryBuildMenu.doBuildMenu)

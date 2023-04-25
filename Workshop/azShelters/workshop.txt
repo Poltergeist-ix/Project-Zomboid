@@ -1,0 +1,15 @@
+version=1
+id=2953062599
+title=PZO Shelters
+description=[h1]Description[/h1]
+description=This mod allows to choose a trespass seting for each safehouse by admins. Default setting is to allow trespassing if a safe-house member is online.
+description=
+description=[quote=Poltergeist]
+description=Commissioned by [b]Alfa-Z 343 for PZO server[/b]
+description=
+description=Contact us if you need any custom mod for your server on
+description=Team Orbit Mods Discord Server
+description=[url=https://discord.gg/2skchrKrDv][img]https://i.imgur.com/BMPAMqq.gif[/img][/url]
+description=[/quote]
+tags=Build 41;Interface;Multiplayer
+visibility=unlisted

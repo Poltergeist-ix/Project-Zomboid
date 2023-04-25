@@ -1,0 +1,7 @@
+IGUI_PTBR = {
+    IGUI_ContainerTitle_DryFishNet = "Rede de Secagem de Peixe",
+	IGUI_ContainerTitle_DryFishRack = "Grelha de Secagem de Peixe",
+	IGUI_ContainerTitle_DryFishSkewer = "Espeto de Secagem de Peixe",
+	IGUI_DryFishMod_RequiresCampfire = "Requer uma Fogueira para secagem",
+    IGUI_DryFishMod_DryProgressTooltip = "Progresso de secagem: %1%",
+}
