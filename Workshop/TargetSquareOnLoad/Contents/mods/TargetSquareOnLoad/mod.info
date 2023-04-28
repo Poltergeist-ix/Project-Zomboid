@@ -1,0 +1,6 @@
+id=TargetSquareOnLoad
+name=Target Square: On Load Commands
+description=Simple way to trigger functions when square is loaded, without every mod performing same task multiple times.
+poster=poster.png
+authors=Poltergeist
+

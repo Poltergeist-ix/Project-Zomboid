@@ -1,0 +1,6 @@
+version=1
+id=
+title=modname
+description=[h1] Description [/h1]
+tags=Build 41
+visibility=hidden
