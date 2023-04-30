@@ -5,7 +5,7 @@
 Simple way to trigger functions when the square is loaded, without every mod performing same checks multiple times.
 
 > Steam Workshop Link  
-> https://steamcommunity.com/sharedfiles/filedetails/?id=???
+> https://steamcommunity.com/sharedfiles/filedetails/?id=2969455858
 
 ## Permissions
 
@@ -89,4 +89,4 @@ Events.OnSGlobalObjectSystemInit.Add(addSpawns)
     > check that you use the right name of the file, if the file isn't found you will see a log message similar to: "require ... failed"
 - API does not have an instance table.
     > The API makes an instance on the OnSGlobalObjectSystemInit event. If there is no instance during loading, but there is one when the game is loaded, it means you try this too early.
-- found other bug or issue: contact on discord or create a github issue
+- found other bug or issue: contact on discord or create a GitHub issue

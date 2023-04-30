@@ -1,5 +1,5 @@
 --[[
-    module for executing functions when specific world squares are loaded on server, based on TheIndieStone SGlobalObjectSystem
+    module for calling functions when specific world squares are loaded on server, based on TheIndieStone's SGlobalObjectSystem
     Author Poltergeist
 --]]
 
@@ -15,14 +15,7 @@ function System.instanceCheck()
         local system = SGlobalObjects.getSystemByIndex(i)
         local luaSystem = system:getModData()
         if luaSystem.Type == System.Type then
-
-            print("zxTest instance reload ",luaSystem.instance) --todo test
-            System = luaSystem --getmetatable(luaSystem)
-            System.instance = luaSystem
-
-            --System.instance = system:getModData()
-            --setmetatable(System.instance, System)
-            --System.__index = System
+            System = luaSystem
             return
         end
     end
@@ -36,14 +29,8 @@ function System.OnSGlobalObjectSystemInit()
     jSystem:setModDataKeys({ "savedData"})
     jSystem:setObjectModDataKeys({ "commands"})
 
-    --todo test
-    print("zxTest system 1",System,rawget(System,"__index"))
-
     local o = jSystem:getModData()
     setmetatable(o, System)
-
-    print("zxTest system 2",System,rawget(System,"__index"))
-
     System.__index = System
     o.system = jSystem
     o.savedData = o.savedData or {}
@@ -54,16 +41,13 @@ function System.OnSGlobalObjectSystemInit()
 end
 
 function System:addPreInitActions()
-    if not self.queuedCommands then return end
-    for i,v in ipairs(self.queuedCommands) do
+    if not System.queuedCommands then return end
+    for i,v in ipairs(System.queuedCommands) do
         self:addCommandToGlobalObject(unpack(v))
     end
-    self.queuedCommands = nil
-
-    print("zxTest queued ",self.queuedCommands,System.queuedCommands) --todo test
+    System.queuedCommands = nil
 end
 
---todo check again
 --- called from java when a chunk with GlobalObjects managed by this system is loaded.
 function System:OnChunkLoaded(wx, wy)
     local ipairs, table, getSquare = ipairs, table, getSquare
@@ -72,17 +56,18 @@ function System:OnChunkLoaded(wx, wy)
 
     for i=globalObjects:size()-1, 0, -1  do
         local globalObject = globalObjects:get(i)
-        local luaObject = globalObject:getModData()
+        local luaObject = globalObject:getModData() --only has the persistent commands table
         local square = getSquare(globalObject:getX(), globalObject:getY(), globalObject:getZ())
 
-        local repeatCommands = {}
+        local repeatCommands, repeatNum = {}, 0
         for i,command in ipairs(luaObject.commands) do
             if self:doCommand(square,command) == true then
-                table.insert(repeatCommands,command)
+                repeatNum = repeatNum + 1
+                repeatCommands[repeatNum] = command
             end
         end
 
-        if repeatCommands[1] then
+        if repeatNum > 0 then
             luaObject.commands = repeatCommands
         else
             self.system:removeObject(globalObject)
@@ -105,7 +90,7 @@ end
 function System:isValidCommand(command)
     if type(command) ~= "table" then error(self.Type .. ": invalid command, not a table type " .. tostring(command)) return end
     if type(command.command) ~= "string" then error(self.Type .. ": invalid command, not a string type " .. tostring(command)) return end
-    if type(self.OnLoadCommands[command.command]) ~= "function" then error(self.Type .. ": invalid command, no function" .. tostring(command)) return end
+    if type(self.OnLoadCommands[command.command]) ~= "function" then error(self.Type .. ": invalid command, no function " .. tostring(command)) return end
     return true
 end
 
@@ -158,13 +143,10 @@ if not isServer() and getDebug() then
             end
 
             local r,g,b,a = 1,1,1,1
-            --local data = item.item
-            --local globalObject = data.system:getObjectAt(data.x, data.y, data.z)
-            --if not globalObject then
-            --    r,g,b = 1.0,0.0,0.0
-            --elseif not globalObject:getModData():getIsoObject() then
-            --    r,g,b = 0.5,0.5,0.5
-            --end
+            local data = item.item
+            if not data.system:getObjectAt(data.x, data.y, data.z) then
+                r,g,b = 0.5,0.5,0.5
+            end
 
             self:drawText(item.text, x, y, r, g, b, a, self.font)
             y = y + self.fontHgt
@@ -179,5 +161,4 @@ if not isServer() and getDebug() then
     end
 end
 
-zxTestMod = System --todo remove
 return System
