@@ -1,4 +1,0 @@
-ItemName_PTBR = {
-    ItemName_DFM.PreppedFish = "Peixe Processado",
-    ItemName_DFM.DryFish = "Peixe seco/desidratado",
-}

@@ -1,3 +1,0 @@
-ContextMenu_EN = {
-    ContextMenu_DryFishMod_AddDrier = "Add skewer to campfire",
-}

@@ -61,6 +61,7 @@ You can save only primary types, objects and functions are not persistent.
 
 This is example of using a 'soft require' of the API, as an optional extension.
 ```lua
+if isClient() then return end
 local API = require "!_TargetSquare_OnLoad"
 
 local addSpawns = function()

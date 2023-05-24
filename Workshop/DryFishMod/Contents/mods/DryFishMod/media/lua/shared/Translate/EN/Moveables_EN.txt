@@ -1,5 +1,0 @@
-Moveables_En = {
-	DFM_Net = "Drying Fish Net",
-	DFM_Rack = "Drying Fish Rack",
-	DFM_Skewer = "Drying Fish Skewer",
-}

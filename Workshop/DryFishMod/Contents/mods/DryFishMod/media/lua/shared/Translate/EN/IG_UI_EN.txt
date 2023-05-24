@@ -1,7 +1,0 @@
-IGUI_EN = {
-    IGUI_ContainerTitle_DryFishNet = "Fish Drying Net",
-    IGUI_ContainerTitle_DryFishRack = "Fish Drying Rack",
-    IGUI_ContainerTitle_DryFishSkewer = "Fish Drying Skewer",
-    IGUI_DryFishMod_RequiresCampfire = "Requires a campfire to dry",
-    IGUI_DryFishMod_DryProgressTooltip = "Drying Progress: %1%",
-}

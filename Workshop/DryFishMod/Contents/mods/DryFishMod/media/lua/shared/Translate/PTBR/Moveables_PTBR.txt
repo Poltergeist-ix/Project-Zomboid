@@ -1,5 +1,0 @@
-Moveables_PTBR = {
-	DFM_Net = "Rede de Secagem de Peixe",
-	DFM_Rack = "Grelha de Secagem de Peixe",
-	DFM_Skewer = "Espeto de Secagem de Peixe",
-}
