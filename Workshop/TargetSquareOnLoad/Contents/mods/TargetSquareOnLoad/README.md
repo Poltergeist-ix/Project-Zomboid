@@ -9,8 +9,8 @@ Simple way to trigger functions when the square is loaded, without every mod per
 
 ## Permissions
 
-Please do not re-upload this mod, it's meant to be used as an API and improve performance.
-You can however reuse it for different tasks as long as you give credit to the author.
+> [Give credit where credit is due](http://theindiestone.com/forums/index.php/topic/2530-mod-permissions/?p=36477)  
+> Please do not re-upload this mod, it's meant to be used as a tool to improve performance. You can however reuse it for different tasks as long as you give credit to the author.
 
 ## Basics
 
