@@ -11,6 +11,7 @@ Drawbacks: this seems like legacy code and next parts don't work
 - DeleteWhenFinished, doesn't remove the attached anim
 - zBias and FinishHoldFrameIndex seem to be unused
 - transmitUpdatedSpriteToServer will not transmit this attached anim
+- there should be support for following character direction, but that might require 3d items
 
 There might be a way to make transmitUpdatedSpriteToServer work, but the frameIncrease will not be synced.
 
