@@ -47,7 +47,7 @@ Parameter 4, the command table, should be a Lua Table with a command value which
 This table will be stored and passed to your function when the square is loaded.
 This table is reused if the function returns true.
 
-Currently, you should set squareCanBeNil = true if you want your function to be called even if the square doesn't have an object.
+Currently, you should set `squareCanBeNil = true` if you want your function to be called even if the square doesn't have an object.
 
 ## Reload Persistence
 

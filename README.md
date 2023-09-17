@@ -1,2 +1,3 @@
-# Project-Zomboid
-Project Zomboid related stuff
+# Project Zomboid
+
+Project Zomboid, docs, snippets, etc 
