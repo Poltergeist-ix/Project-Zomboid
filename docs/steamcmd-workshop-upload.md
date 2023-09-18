@@ -10,17 +10,18 @@ Details of how to upload workshop items with steamcmd. Helps to automate upload 
 
 ## create the vdf file
 
+> ***To create a new Steam Workshop item using steamcmd.exe a VDF file must first be created. The VDF is a plain text file that should contain the following keys.***
 ```
 "workshopitem"
 {
-	"appid"					"108600"
-	"publishedfileid"		"5674"
-	"contentfolder"			"D:\\Content\\workshopitem"
-	"previewfile"			"D:\\Content\\preview.jpg"
-	"visibility"			"0"
-	"title"					"My Amazing Mod"
-	"description"			"My Amazing Mod adds amazing features."
-	"changenote"			"Version 1.2"
+    "appid"				"108600"
+    "publishedfileid"		"5674"
+    "contentfolder"			"D:\\Content\\workshopitem"
+    "previewfile"			"D:\\Content\\preview.jpg"
+    "visibility"			"0"
+    "title"				"My Amazing Mod"
+    "description"			"My Amazing Mod adds amazing features."
+    "changenote"			"Version 1.2"
 }
 ```
 
@@ -32,7 +33,7 @@ Details of how to upload workshop items with steamcmd. Helps to automate upload 
 - visibility: public = 0 / friends-only = 1 / private = 2 / unlisted = 3
 - title: title - name of the workshop item
 - description: description for the workshop item
-- changenote: changenotes for the current version of the workshop item
+- changenote: changenotes for the latest version of the workshop item
 
 ***Notes***:      	
 - appid must always be set
@@ -40,6 +41,7 @@ Details of how to upload workshop items with steamcmd. Helps to automate upload 
 - To update an existing item the publishedfileid must be set and you must be the creator of the workshop item.
 - The remaining key/value pairs should be included in the VDF if the key should be updated.
 - The keys map to the various ISteamUGC::SetItem[...] methods.
+- It might be impossible to set tags with this methos.
 
 ## upload
 
@@ -54,5 +56,4 @@ Notes:
 # Reference
 
 Steam documentation: [https://partner.steamgames.com/doc/features/workshop/implementation#SteamCmd](https://partner.steamgames.com/doc/features/workshop/implementation#SteamCmd)  
-
-***Alternative ways to upalod content include using `ISteamUGC` while steam is running or uploading through the game.***
+*Alternative ways to upalod content include using `ISteamUGC` while steam is running or uploading through the game.*
