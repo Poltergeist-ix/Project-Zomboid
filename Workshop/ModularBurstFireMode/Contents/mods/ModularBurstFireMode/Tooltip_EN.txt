@@ -1,2 +1,0 @@
-Tooltip_EN
-Tooltip_FireMode_modBurst = "No Panel"

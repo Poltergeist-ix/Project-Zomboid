@@ -1,7 +1,0 @@
-require=ScrapGuns(new version)
-id=ModularBurstFireMode_ScrapGuns
-name=Burst fire mode (Scrap Guns)
-description=
-versionMin=41.78
-poster=poster.png
-authors=Poltergeist
