@@ -56,6 +56,6 @@ Notes:
 # Reference
 
 - Steam documentation: [https://partner.steamgames.com/doc/features/workshop/implementation#SteamCmd](https://partner.steamgames.com/doc/features/workshop/implementation#SteamCmd)  
-- *Alternative ways to upalod content include using `ISteamUGC` while steam is running or uploading through the game.*
+- *Alternative ways to upload content include using `ISteamUGC` while steam is running or uploading through the game.*
 - [Script I used on windows with vscode tasks](https://github.com/Poltergeistzx/Project-Zomboid/blob/main/scripts/workshop-upload.py)
     > requires project structure similar to [pzstudio](https://github.com/Konijima/project-zomboid-studio).
