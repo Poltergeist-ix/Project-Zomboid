@@ -5,7 +5,7 @@
 Details of how to upload workshop items with steamcmd. Helps to automate upload of mods or even use animated previews.
 
 
-**Required**: steamcmd
+**Required**: steamcmd, game license on steam
 **Not required**: launch steam, launch game
 
 ## create the vdf file
@@ -55,5 +55,7 @@ Notes:
 
 # Reference
 
-Steam documentation: [https://partner.steamgames.com/doc/features/workshop/implementation#SteamCmd](https://partner.steamgames.com/doc/features/workshop/implementation#SteamCmd)  
-*Alternative ways to upalod content include using `ISteamUGC` while steam is running or uploading through the game.*
+- Steam documentation: [https://partner.steamgames.com/doc/features/workshop/implementation#SteamCmd](https://partner.steamgames.com/doc/features/workshop/implementation#SteamCmd)  
+- *Alternative ways to upalod content include using `ISteamUGC` while steam is running or uploading through the game.*
+- [Script I used on windows with vscode tasks](https://github.com/Poltergeistzx/Project-Zomboid/blob/main/scripts/workshop-upload.py)
+    > requires project structure similar to [pzstudio](https://github.com/Konijima/project-zomboid-studio).
